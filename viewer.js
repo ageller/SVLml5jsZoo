@@ -1,5 +1,7 @@
 let objData;
 let objIndex = 0;
+let useIndex = 0;
+let randomIndices = [];
 let colorMap;
 let tDur = 1000;
 
@@ -66,7 +68,7 @@ function populateStats(i){
 
 	var spiral = 10*objData[i]['t04_spiral_a08_spiral_debiased'];
 	var smooth = 10*objData[i]['t01_smooth_or_features_a01_smooth_debiased'];
-	console.log("ID, spiral, smooth", objIndex, spiral, smooth)
+	console.log("ID, spiral, smooth", useIndex, spiral, smooth)
 
 	makeStatsPlot('spiralStats', spiral, 10, 1, 150, 10)
 	makeStatsPlot('smoothStats', smooth, 10, 1, 150, 10)
@@ -87,14 +89,25 @@ var step = d3.scaleLinear()
 
 }
 
-function advanceIndex(val){
+function advanceIndex(val, random=true){
+
 	objIndex += val;
 	if (objIndex < 0){
 		objIndex = objData.length-1;
 	}
-	objIndex = objIndex % objData.length;	
+	if (random){
+		useIndex = randomIndices[objIndex];
+	} else {
+		useIndex = objIndex;
+	}
+	
 }
-
+//create a new index list that is random
+function randomizeObjects(){
+	for(var i=0; i<objData.length; i++){
+		randomIndices.push(parseInt(Math.random()*objData.length));
+	}
+}
 function moveImage(val){
 	var t = d3.transition().duration(tDur);
 	var w = parseFloat(d3.select('#imageDiv').style('width'))
@@ -102,7 +115,7 @@ function moveImage(val){
 	d3.select('#imgNow') //animation in css
 		.attr('id','imgPrev')
 
-	showImage(objIndex,-val*w);
+	showImage(useIndex,-val*w);
 
 	var offsetX = val*w
 	d3.select('#imgNow')
@@ -122,18 +135,19 @@ function moveImage(val){
 d3.select('#nextButton').on('click',function(e){
 	advanceIndex(1);
 	moveImage(1);
-	populateStats(objIndex);
+	populateStats(useIndex);
 })
 d3.select('#prevButton').on('click',function(e){
 	advanceIndex(-1);
 	moveImage(-1);
-	populateStats(objIndex);
+	populateStats(useIndex);
 })
 //read in the data
 d3.json('data/GZ2data.json')
 	.then(function(data) {
 		objData = data;
 		setColorMap();
-		showImage(objIndex);
-		populateStats(objIndex);
+		randomizeObjects();
+		showImage(useIndex);
+		populateStats(useIndex);
 	});
