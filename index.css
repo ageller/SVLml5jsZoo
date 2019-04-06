@@ -67,15 +67,15 @@ body {
 	background-color:white;
 	color:black;
 }
-#imageDiv{
+#mainImageDiv{
 	position:absolute;
 	left:0;
 	top:0;
 	width:424px;
 	height:424px;
 	margin:10px;
-	clip: rect(0px, 424px, 424px, 0px);
+	clip: rect(0px, 428px, 428px, 0px);
 }
-#imageDiv img{
+.imageDiv img{
 	transition: 1s;
 }

@@ -5,9 +5,45 @@ let randomIndices = [];
 let colorMap;
 let tDur = 1000;
 
+//try packing instead of random https://bl.ocks.org/denjn5/6d5ddd4226506d644bb20062fc60b53f
+function populateField(size = 50){
+	var left = parseFloat(d3.select('#mainImageDiv').style('width'))
+	var w = window.innerWidth - left - 50 - 4; //4 for border (not needed)
+	var h = window.innerHeight - 4; //4 for border (not needed)
+	var field = d3.select('#fieldDiv')
+		.style('position','absolute')
+		.style('left', left+50)
+		.style('width', w)
+		.style('height', h)
+
+
+	field.selectAll('div').data(objData).enter()
+		.append('div')
+		.attr('class','bordered')
+		.style('width', size+'px')
+		.style('height',size+'px')
+		.style('position','absolute')
+		.style('left',function(d){return Math.random()*w})
+		.style('top',function(d){return Math.random()*h})
+		.style('transform',function(d){return 'rotate('+Math.random()*360+'deg)'})
+		.append('img')
+			.attr('src',function(d){return 'data/'+d.image})
+			.attr('width',size+'px')
+			.attr('height',size+'px')
+
+
+	// svg.selectAll('circle').data(data).enter()
+	// .append('circle')
+	// 	.attr('cx', function(d){return 2.5*radius*d + offsetX})
+	// 	.attr('cy', radius + offsetY)
+	// 	.attr('r', radius)
+	// 	.attr('stroke', 'black')
+	// 	.attr('stroke-width', strokeWidth)
+	// 	.attr('fill', function(d){return colorMap(d/10.)});
+}
 function showImage(i, offsetX=0){
 
-	var div = d3.select('#imageDiv')
+	var div = d3.select('#mainImageDiv')
 	var w = parseFloat(div.style('width'))
 	var h = parseFloat(div.style('height'))
 	div.append('img')
@@ -110,8 +146,8 @@ function randomizeObjects(){
 }
 function moveImage(val){
 	var t = d3.transition().duration(tDur);
-	var w = parseFloat(d3.select('#imageDiv').style('width'))
-	var h = parseFloat(d3.select('#imageDiv').style('height'))
+	var w = parseFloat(d3.select('#mainImageDiv').style('width'))
+	var h = parseFloat(d3.select('#mainImageDiv').style('height'))
 	d3.select('#imgNow') //animation in css
 		.attr('id','imgPrev')
 
@@ -148,6 +184,7 @@ d3.json('data/GZ2data.json')
 		objData = data;
 		setColorMap();
 		randomizeObjects();
+		populateField();
 		showImage(useIndex);
 		populateStats(useIndex);
 	});
