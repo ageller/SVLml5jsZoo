@@ -1,10 +1,3 @@
-let objData;
-let objIndex = 0;
-let useIndex = 0;
-let randomIndices = [];
-let colorMap;
-let tDur = 1000;
-
 //try packing instead of random https://bl.ocks.org/denjn5/6d5ddd4226506d644bb20062fc60b53f
 function populateField(size = 50){
 	var left = parseFloat(d3.select('#mainImageDiv').style('width'))
@@ -17,7 +10,7 @@ function populateField(size = 50){
 		.style('height', h)
 
 
-	field.selectAll('div').data(objData).enter()
+	field.selectAll('div').data(params.objData).enter()
 		.append('div')
 		.attr('class','bordered')
 		.style('width', size+'px')
@@ -39,7 +32,7 @@ function populateField(size = 50){
 	// 	.attr('r', radius)
 	// 	.attr('stroke', 'black')
 	// 	.attr('stroke-width', strokeWidth)
-	// 	.attr('fill', function(d){return colorMap(d/10.)});
+	// 	.attr('fill', function(d){return params.colorMap(d/10.)});
 }
 function showImage(i, offsetX=0){
 
@@ -48,7 +41,7 @@ function showImage(i, offsetX=0){
 	var h = parseFloat(div.style('height'))
 	div.append('img')
 		.attr('id','imgNow')
-		.attr('src','data/'+objData[i].image)
+		.attr('src','data/'+params.objData[i].image)
 		.style('position','absolute') 
 		.style('left',offsetX)
 
@@ -83,7 +76,7 @@ function populateStats(i){
 				.attr('r', radius)
 				.attr('stroke', 'black')
 				.attr('stroke-width', strokeWidth)
-				.attr('fill', function(d){return colorMap(d/10.)});
+				.attr('fill', function(d){return params.colorMap(d/10.)});
 
 		var clipPath = svg.append('defs').append("clipPath")
 			.attr("id",id+'Clip')
@@ -92,7 +85,7 @@ function populateStats(i){
 				.attr("height", 50)
 				.attr("x", offsetX - radius - strokeWidth)
 				.attr("y", 0)
-		var t = d3.transition().duration(tDur);
+		var t = d3.transition().duration(params.tDur);
 		d3.select('#'+id+'Clip').selectAll('rect').transition(t)
 			.attr("width", 2.5*radius*value)
 
@@ -102,9 +95,9 @@ function populateStats(i){
 
 
 
-	var spiral = 10*objData[i]['t04_spiral_a08_spiral_debiased'];
-	var smooth = 10*objData[i]['t01_smooth_or_features_a01_smooth_debiased'];
-	console.log("ID, spiral, smooth", useIndex, spiral, smooth)
+	var spiral = 10*params.objData[i]['t04_spiral_a08_spiral_debiased'];
+	var smooth = 10*params.objData[i]['t01_smooth_or_features_a01_smooth_debiased'];
+	console.log("ID, spiral, smooth", params.useIndex, spiral, smooth)
 
 	makeStatsPlot('spiralStats', spiral, 10, 1, 150, 10)
 	makeStatsPlot('smoothStats', smooth, 10, 1, 150, 10)
@@ -118,7 +111,7 @@ var step = d3.scaleLinear()
 		.domain([1, 8])
 		.range([0, 1]);
 
-	colorMap= d3.scaleLinear()
+	params.colorMap= d3.scaleLinear()
 		.domain([0, step(2), step(3), step(4), step(5), step(6), step(7), 1])
 		.range(['#d73027', '#f46d43', '#fdae61', '#fee08b', '#d9ef8b', '#a6d96a', '#66bd63', '#1a9850'])
 		.interpolate(d3.interpolateHcl); //interpolateHsl interpolateHcl interpolateRgb
@@ -127,31 +120,31 @@ var step = d3.scaleLinear()
 
 function advanceIndex(val, random=true){
 
-	objIndex += val;
-	if (objIndex < 0){
-		objIndex = objData.length-1;
+	params.objIndex += val;
+	if (params.objIndex < 0){
+		params.objIndex = params.objData.length-1;
 	}
 	if (random){
-		useIndex = randomIndices[objIndex];
+		params.useIndex = params.randomIndices[params.objIndex];
 	} else {
-		useIndex = objIndex;
+		params.useIndex = params.objIndex;
 	}
 	
 }
 //create a new index list that is random
 function randomizeObjects(){
-	for(var i=0; i<objData.length; i++){
-		randomIndices.push(parseInt(Math.random()*objData.length));
+	for(var i=0; i<params.objData.length; i++){
+		params.randomIndices.push(parseInt(Math.random()*params.objData.length));
 	}
 }
 function moveImage(val){
-	var t = d3.transition().duration(tDur);
+	var t = d3.transition().duration(params.tDur);
 	var w = parseFloat(d3.select('#mainImageDiv').style('width'))
 	var h = parseFloat(d3.select('#mainImageDiv').style('height'))
 	d3.select('#imgNow') //animation in css
 		.attr('id','imgPrev')
 
-	showImage(useIndex,-val*w);
+	showImage(params.useIndex,-val*w);
 
 	var offsetX = val*w
 	d3.select('#imgNow')
@@ -171,20 +164,20 @@ function moveImage(val){
 d3.select('#nextButton').on('click',function(e){
 	advanceIndex(1);
 	moveImage(1);
-	populateStats(useIndex);
+	populateStats(params.useIndex);
 })
 d3.select('#prevButton').on('click',function(e){
 	advanceIndex(-1);
 	moveImage(-1);
-	populateStats(useIndex);
+	populateStats(params.useIndex);
 })
 //read in the data
 d3.json('data/GZ2data.json')
 	.then(function(data) {
-		objData = data;
+		params.objData = data;
 		setColorMap();
 		randomizeObjects();
 		populateField();
-		showImage(useIndex);
-		populateStats(useIndex);
+		showImage(params.useIndex);
+		populateStats(params.useIndex);
 	});
