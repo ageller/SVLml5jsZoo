@@ -1,28 +1,56 @@
+
 //try packing instead of random https://bl.ocks.org/denjn5/6d5ddd4226506d644bb20062fc60b53f
-function populateField(size = 50){
-	var left = parseFloat(d3.select('#mainImageDiv').style('width'))
-	var w = window.innerWidth - left - 50 - 4; //4 for border (not needed)
-	var h = window.innerHeight - 4; //4 for border (not needed)
+function populateField(){
+	var w = window.innerWidth - 2.*params.bucketWidth; 
+	var h = window.innerHeight; 
 	var field = d3.select('#fieldDiv')
 		.style('position','absolute')
-		.style('left', left+50)
-		.style('width', w)
-		.style('height', h)
+		.style('left', params.bucketWidth+'px')
+		.style('width', w+'px')
+		.style('height', h+'px')
 
+	//calculate how many can fit in this grid
+	var imageSize = (h - 2.*params.imageBorderWidth)/params.nImageHeight; //including border
+	var nImageWidth = Math.floor(w/imageSize); 
+	var xOffset = (w - 2.*params.imageBorderWidth - nImageWidth*imageSize)/2.;
 
-	field.selectAll('div').data(params.objData).enter()
+	//check which ones will be shown
+	params.objData.forEach(function(d,i){
+		var left = Math.floor(i/params.nImageHeight)*imageSize + xOffset;
+		var top = (i % params.nImageHeight)*imageSize;
+		if (left < (w-imageSize)){
+			d.left = left;
+			d.top = top;
+			d.active = false;
+			d.dragImageSamples = [];
+			params.objDataShown.push(d);
+
+		}
+	})
+
+	console.log('N images available, used', params.objData.length, params.objDataShown.length)
+	console.log('image size', imageSize)
+
+	field.selectAll('div').data(params.objDataShown).enter()
 		.append('div')
-		.attr('class','bordered')
-		.style('width', size+'px')
-		.style('height',size+'px')
+		.attr('id',function(d){return getImageID(d)})
+		.style('border-style','solid')
+		.style('border-width',params.imageBorderWidth + 'px')
+		.style('border-color','red')
+		.style('width', imageSize - params.imageBorderWidth + 'px') //overlap the borders, for a cleaner look
+		.style('height',imageSize - params.imageBorderWidth + 'px')
 		.style('position','absolute')
-		.style('left',function(d){return Math.random()*w})
-		.style('top',function(d){return Math.random()*h})
-		.style('transform',function(d){return 'rotate('+Math.random()*360+'deg)'})
+		.style('left',function(d,i){return d.left + 'px'})
+		.style('top',function(d,i){return d.top + 'px'})
+		.style('z-index',1)
 		.append('img')
 			.attr('src',function(d){return 'data/'+d.image})
-			.attr('width',size+'px')
-			.attr('height',size+'px')
+			.attr('width',imageSize - params.imageBorderWidth + 'px')
+			.attr('height',imageSize - params.imageBorderWidth + 'px')
+		.on('mousedown', function(d){
+			d.active = true;
+			d3.event.preventDefault();
+		})
 
 
 	// svg.selectAll('circle').data(data).enter()
@@ -33,6 +61,68 @@ function populateField(size = 50){
 	// 	.attr('stroke', 'black')
 	// 	.attr('stroke-width', strokeWidth)
 	// 	.attr('fill', function(d){return params.colorMap(d/10.)});
+}
+function getImageID(d){
+	return d.image.split('.').join('').split('/').join('');
+}
+
+function handleImageMoves(){
+	params.objDataShown.forEach(function(d){
+		if (d.active){
+			if (d3.event != null){
+				d.dragImageSamples.push(d3.event)
+			}
+			if (d.dragImageSamples.length >2){ //get velocity so that we can give some intertia?
+				d.dragImageSamples.shift();
+				//for MouseEvent
+				var x1 = d.dragImageSamples[0].clientX;
+				var x2 = d.dragImageSamples[1].clientX;
+				var y1 = d.dragImageSamples[0].clientY;
+				var y2 = d.dragImageSamples[1].clientY;
+				if (d.dragImageSamples[0].touches){ //for TouchEvent
+					x1 = d.dragImageSamples[0].touches[0].clientX;
+					x2 = d.dragImageSamples[1].touches[0].clientX;
+					y1 = d.dragImageSamples[0].touches[0].clientY;
+					y2 = d.dragImageSamples[1].touches[0].clientY;
+				}
+
+				var dt = d.dragImageSamples[1].timeStamp - d.dragImageSamples[0].timeStamp;
+				var diffX = x2-x1;
+				var diffY = y2-y1;
+				d.dragImageVx = diffX/dt*params.imageInertia;
+				d.dragImageVy = diffY/dt*params.imageInertia;
+
+				var left = parseFloat(d3.select('#'+getImageID(d)).style('left'))
+				var top = parseFloat(d3.select('#'+getImageID(d)).style('top'))
+				var position = [left + diffX, top + diffY];
+				d3.select('#'+getImageID(d))
+					.style('z-index',10)
+					.style('left', (position[0]) + 'px')
+					.style('top', (position[1]) + 'px')
+			}
+
+
+		}
+	})
+}
+function finishImageMoves(){
+	params.objDataShown.forEach(function(d){
+		if (d.active){
+			var left = parseFloat(d3.select('#'+getImageID(d)).style('left'))
+			var top = parseFloat(d3.select('#'+getImageID(d)).style('top'))	
+
+			var finalX = left + d.dragImageVx*params.imageInertia;
+			var finalY = top + d.dragImageVy*params.imageInertia;
+
+			d3.select('#'+getImageID(d)).transition().ease(d3.easePolyOut).duration(params.imageInertiaN)
+				.style('left', finalX + 'px')
+				.style('top', finalY + 'px')
+
+
+			d.active = false;
+			d.dragImageSamples = [];
+		}
+	})
 }
 function showImage(i, offsetX=0){
 
@@ -85,8 +175,7 @@ function populateStats(i){
 				.attr("height", 50)
 				.attr("x", offsetX - radius - strokeWidth)
 				.attr("y", 0)
-		var t = d3.transition().duration(params.tDur);
-		d3.select('#'+id+'Clip').selectAll('rect').transition(t)
+		d3.select('#'+id+'Clip').selectAll('rect').transition(params.tTrans)
 			.attr("width", 2.5*radius*value)
 
 		svg.attr('clip-path', 'url(#'+id+'Clip)');
@@ -137,8 +226,7 @@ function randomizeObjects(){
 		params.randomIndices.push(parseInt(Math.random()*params.objData.length));
 	}
 }
-function moveImage(val){
-	var t = d3.transition().duration(params.tDur);
+function slideImage(val){
 	var w = parseFloat(d3.select('#mainImageDiv').style('width'))
 	var h = parseFloat(d3.select('#mainImageDiv').style('height'))
 	d3.select('#imgNow') //animation in css
@@ -163,12 +251,12 @@ function moveImage(val){
 // attach some functions to buttons
 d3.select('#nextButton').on('click',function(e){
 	advanceIndex(1);
-	moveImage(1);
+	slideImage(1);
 	populateStats(params.useIndex);
 })
 d3.select('#prevButton').on('click',function(e){
 	advanceIndex(-1);
-	moveImage(-1);
+	slideImage(-1);
 	populateStats(params.useIndex);
 })
 //read in the data
@@ -178,6 +266,10 @@ d3.json('data/GZ2data.json')
 		setColorMap();
 		randomizeObjects();
 		populateField();
-		showImage(params.useIndex);
-		populateStats(params.useIndex);
+		//showImage(params.useIndex);
+		//populateStats(params.useIndex);
 	});
+
+d3.select('body')
+	.on('mousemove', handleImageMoves)
+	.on('mouseup', finishImageMoves)
