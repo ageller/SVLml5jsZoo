@@ -1,24 +1,52 @@
+//the text for the budgets
+function formatBucketText(){
+	d3.select('#spiralText')
+		.style('font-size',params.bucketWidth + 'px')
+		.style('position', 'absolute')
+		.style('color','gray')
+		.style('transform','rotate(90deg)')
+		.style('margin','20px')
+	var w = parseFloat(d3.select('#spiralText').node().getBoundingClientRect().width);
+	var h = parseFloat(d3.select('#spiralText').node().getBoundingClientRect().height);
 
-//try packing instead of random https://bl.ocks.org/denjn5/6d5ddd4226506d644bb20062fc60b53f
+	d3.select('#spiralText')
+		.style('left',-w/2. -20+ 'px')  //why is this 20 and I use 10 below
+		.style('top',(parseFloat(window.innerHeight) - h)/2. + 'px') //not sure why this isn't working
+
+	d3.select('#smoothText')
+		.style('font-size',params.bucketWidth + 'px')
+		.style('position', 'absolute')
+		.style('color','gray')
+		.style('transform','rotate(-90deg)')
+		.style('margin','20px')
+	var w = parseFloat(d3.select('#smoothText').node().getBoundingClientRect().width);
+	var h = parseFloat(d3.select('#smoothText').node().getBoundingClientRect().height);
+
+	d3.select('#smoothText')
+		.style('left',parseFloat(window.innerWidth) - 2.*w - 10 + 'px') //don't understand this
+		.style('top',(parseFloat(window.innerHeight) - h)/2. + 'px') //not sure why this isn't working
+}
+
+
+//grid for small images
+//do I need to check for the bucketWidth?
 function populateField(){
-	var w = window.innerWidth - 2.*params.bucketWidth; 
+	var w = window.innerWidth; 
 	var h = window.innerHeight; 
 	var field = d3.select('#fieldDiv')
 		.style('position','absolute')
-		.style('left', params.bucketWidth+'px')
 		.style('width', w+'px')
 		.style('height', h+'px')
 
 	//calculate how many can fit in this grid
-	var imageSize = (h - 2.*params.imageBorderWidth)/params.nImageHeight; //including border
-	var nImageWidth = Math.floor(w/imageSize); 
-	var xOffset = (w - 2.*params.imageBorderWidth - nImageWidth*imageSize)/2.;
-
+	params.imageSize = (h - 2.*params.imageBorderWidth)/params.nImageHeight; //including border
+	var nImageWidth = Math.min(Math.floor(w/params.imageSize), params.objData.length/params.nImageHeight);  //here should account for bucketWidth
+	var xOffset = (w - 2.*params.imageBorderWidth - nImageWidth*params.imageSize)/2. ;
 	//check which ones will be shown
 	params.objData.forEach(function(d,i){
-		var left = Math.floor(i/params.nImageHeight)*imageSize + xOffset;
-		var top = (i % params.nImageHeight)*imageSize;
-		if (left < (w-imageSize)){
+		var left = Math.floor(i/params.nImageHeight)*params.imageSize + xOffset;
+		var top = (i % params.nImageHeight)*params.imageSize;
+		if (left < (w-params.imageSize)){
 			d.left = left;
 			d.top = top;
 			d.active = false;
@@ -29,7 +57,7 @@ function populateField(){
 	})
 
 	console.log('N images available, used', params.objData.length, params.objDataShown.length)
-	console.log('image size', imageSize)
+	console.log('image size', params.imageSize)
 
 	field.selectAll('div').data(params.objDataShown).enter()
 		.append('div')
@@ -37,16 +65,16 @@ function populateField(){
 		.style('border-style','solid')
 		.style('border-width',params.imageBorderWidth + 'px')
 		.style('border-color','red')
-		.style('width', imageSize - params.imageBorderWidth + 'px') //overlap the borders, for a cleaner look
-		.style('height',imageSize - params.imageBorderWidth + 'px')
+		.style('width', params.imageSize - params.imageBorderWidth + 'px') //overlap the borders, for a cleaner look
+		.style('height',params.imageSize - params.imageBorderWidth + 'px')
 		.style('position','absolute')
 		.style('left',function(d,i){return d.left + 'px'})
 		.style('top',function(d,i){return d.top + 'px'})
 		.style('z-index',1)
 		.append('img')
 			.attr('src',function(d){return 'data/'+d.image})
-			.attr('width',imageSize - params.imageBorderWidth + 'px')
-			.attr('height',imageSize - params.imageBorderWidth + 'px')
+			.attr('width',params.imageSize - params.imageBorderWidth + 'px')
+			.attr('height',params.imageSize - params.imageBorderWidth + 'px')
 		.on('mousedown', function(d){
 			d.active = true;
 			d3.event.preventDefault();
@@ -114,9 +142,33 @@ function finishImageMoves(){
 			var finalX = left + d.dragImageVx*params.imageInertia;
 			var finalY = top + d.dragImageVy*params.imageInertia;
 
+			var bucket = null;
+			if (finalX < parseFloat(window.innerWidth)*params.bucketSuction && d.dragImageVx < 0){
+				finalX = -params.imageSize-params.imageBorderWidth;
+				params.spiralImages.push(d);
+				bucket = "spiralText";
+			}
+			if (finalX > parseFloat(window.innerWidth*(1. - params.bucketSuction)) && d.dragImageVx > 0){
+				finalX = parseFloat(window.innerWidth);
+				params.smoothImages.push(d);
+				bucket = "smoothText"
+
+			}
+
 			d3.select('#'+getImageID(d)).transition().ease(d3.easePolyOut).duration(params.imageInertiaN)
 				.style('left', finalX + 'px')
 				.style('top', finalY + 'px')
+				.on('end', function(){
+					if (bucket != null){
+						d3.select('#'+bucket).transition().duration(200)
+							.style('color','red')
+							.on('end',function(){
+								d3.select('#'+bucket).transition().duration(200)
+									.style('color','gray')
+							})
+					}
+				})
+
 
 
 			d.active = false;
@@ -124,6 +176,9 @@ function finishImageMoves(){
 		}
 	})
 }
+
+/////////////////////
+//for the big image
 function showImage(i, offsetX=0){
 
 	var div = d3.select('#mainImageDiv')
@@ -265,6 +320,7 @@ d3.json('data/GZ2data.json')
 		params.objData = data;
 		setColorMap();
 		randomizeObjects();
+		formatBucketText();
 		populateField();
 		//showImage(params.useIndex);
 		//populateStats(params.useIndex);
