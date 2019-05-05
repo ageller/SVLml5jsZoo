@@ -1,53 +1,60 @@
 //the text for the budgets
 function formatBucketText(){
-	d3.select('#spiralText')
+	d3.select('body').append('div')
+		.attr('id','spiralText')
+		.text('Spiral')
 		.style('font-size',params.bucketWidth + 'px')
 		.style('position', 'absolute')
 		.style('color','gray')
 		.style('transform','rotate(90deg)')
 		.style('margin','20px')
-	var w = parseFloat(d3.select('#spiralText').node().getBoundingClientRect().width);
-	var h = parseFloat(d3.select('#spiralText').node().getBoundingClientRect().height);
 
+	var w = parseFloat(d3.select('#spiralText').node().getBoundingClientRect().width);
 	d3.select('#spiralText')
 		.style('left',-w/2. -20+ 'px')  //why is this 20 and I use 10 below
-		.style('top',(parseFloat(window.innerHeight) - h)/2. + 'px') //not sure why this isn't working
+		.style('line-height',params.windowHeight + 'px')
+		.style('text-align','center')
 
-	d3.select('#smoothText')
+	d3.select('body').append('div')
+		.attr('id','smoothText')
+		.text('Smooth')
 		.style('font-size',params.bucketWidth + 'px')
 		.style('position', 'absolute')
 		.style('color','gray')
 		.style('transform','rotate(-90deg)')
 		.style('margin','20px')
-	var w = parseFloat(d3.select('#smoothText').node().getBoundingClientRect().width);
-	var h = parseFloat(d3.select('#smoothText').node().getBoundingClientRect().height);
 
+	var w = parseFloat(d3.select('#smoothText').node().getBoundingClientRect().width);
 	d3.select('#smoothText')
-		.style('left',parseFloat(window.innerWidth) - 2.*w - 10 + 'px') //don't understand this
-		.style('top',(parseFloat(window.innerHeight) - h)/2. + 'px') //not sure why this isn't working
+		.style('left',params.windowWidth - 2.*w - 10 + 'px') //don't understand this
+		.style('line-height',params.windowHeight + 'px')
+		.style('text-align','center')
 }
 
 
 //grid for small images
-//do I need to check for the bucketWidth?
 function populateField(){
-	var w = window.innerWidth; 
-	var h = window.innerHeight; 
-	var field = d3.select('#fieldDiv')
+	var w = params.windowWidth; 
+	var h = params.windowHeight; 
+	var field = d3.select('body').append('div')
+		.attr('id','fieldDiv')
 		.style('position','absolute')
 		.style('width', w+'px')
 		.style('height', h+'px')
 
 	//calculate how many can fit in this grid
 	params.imageSize = (h - 2.*params.imageBorderWidth)/params.nImageHeight; //including border
-	var nImageWidth = Math.min(Math.floor(w/params.imageSize), params.objData.length/params.nImageHeight);  //here should account for bucketWidth
-	var xOffset = (w - 2.*params.imageBorderWidth - nImageWidth*params.imageSize)/2. ;
+	params.imageGrowSize = Math.min(424, params.imageSize*params.imageGrow)
+	var divWidth = Math.min(w - 2.*params.bucketWidth, params.objData.length/params.nImageHeight*params.imageSize);
+	var nImageWidth = Math.floor(divWidth/params.imageSize);
+	var xOffset = (w - divWidth)/2. ;
+
 	//check which ones will be shown
 	params.objData.forEach(function(d,i){
-		var left = Math.floor(i/params.nImageHeight)*params.imageSize + xOffset;
+		var left = Math.floor(i/params.nImageHeight)*params.imageSize;
 		var top = (i % params.nImageHeight)*params.imageSize;
-		if (left < (w-params.imageSize)){
-			d.left = left;
+		if (left < divWidth){
+			d.left = left + xOffset;
 			d.top = top;
 			d.active = false;
 			d.dragImageSamples = [];
@@ -77,7 +84,12 @@ function populateField(){
 			.attr('height',params.imageSize - params.imageBorderWidth + 'px')
 		.on('mousedown', function(d){
 			d.active = true;
+			growImage(d);
+			populateStats(d);
 			d3.event.preventDefault();
+		})
+		.on('mouseup', function(d){
+			shrinkImage(d);
 		})
 
 
@@ -94,6 +106,36 @@ function getImageID(d){
 	return d.image.split('.').join('').split('/').join('');
 }
 
+function growImage(d){
+	var top = d3.select('#'+getImageID(d)).style('top')
+	var left = d3.select('#'+getImageID(d)).style('left')
+	d3.select('#'+getImageID(d))
+		.style('z-index',10)
+	d3.select('#'+getImageID(d)).transition().duration(200)
+		.style('height',params.imageGrowSize - params.imageBorderWidth + 'px')
+		.style('width',params.imageGrowSize - params.imageBorderWidth + 'px')
+		.style('margin-top', (params.imageSize - params.imageGrowSize)/2. + 'px')
+		.style('margin-left', (params.imageSize - params.imageGrowSize)/2. + 'px')
+		.style('box-shadow', '10px 10px 10px black');
+
+	d3.select('#'+getImageID(d)).select('img').transition().duration(200)
+		.attr('height',params.imageGrowSize - params.imageBorderWidth + 'px')
+		.attr('width',params.imageGrowSize - params.imageBorderWidth + 'px')
+	
+}
+function shrinkImage(d){
+	//for some reason, the transitions don't work for the outer div here?
+	d3.select('#'+getImageID(d))//.transition().duration(200)
+		.style('height',params.imageSize - params.imageBorderWidth + 'px')
+		.style('width',params.imageSize - params.imageBorderWidth + 'px')
+		.style('margin-top', '0px')
+		.style('margin-left', '0px')
+		.style('box-shadow', 'none');
+	d3.select('#'+getImageID(d)).select('img')//.transition().duration(200)
+		.attr('height',params.imageSize - params.imageBorderWidth + 'px')
+		.attr('width',params.imageSize - params.imageBorderWidth + 'px')
+	d3.select('#'+getImageID(d)).selectAll('svg').remove()
+}
 function handleImageMoves(){
 	params.objDataShown.forEach(function(d){
 		if (d.active){
@@ -124,7 +166,6 @@ function handleImageMoves(){
 				var top = parseFloat(d3.select('#'+getImageID(d)).style('top'))
 				var position = [left + diffX, top + diffY];
 				d3.select('#'+getImageID(d))
-					.style('z-index',10)
 					.style('left', (position[0]) + 'px')
 					.style('top', (position[1]) + 'px')
 			}
@@ -133,6 +174,7 @@ function handleImageMoves(){
 		}
 	})
 }
+//need to avoid having images running off edge of table and getting lost (without going into bucket)
 function finishImageMoves(){
 	params.objDataShown.forEach(function(d){
 		if (d.active){
@@ -143,13 +185,13 @@ function finishImageMoves(){
 			var finalY = top + d.dragImageVy*params.imageInertia;
 
 			var bucket = null;
-			if (finalX < parseFloat(window.innerWidth)*params.bucketSuction && d.dragImageVx < 0){
+			if (finalX < params.windowWidth*params.bucketSuction && d.dragImageVx < 0){
 				finalX = -params.imageSize-params.imageBorderWidth;
 				params.spiralImages.push(d);
 				bucket = "spiralText";
 			}
-			if (finalX > parseFloat(window.innerWidth*(1. - params.bucketSuction)) && d.dragImageVx > 0){
-				finalX = parseFloat(window.innerWidth);
+			if (finalX > params.windowWidth*(1. - params.bucketSuction) && d.dragImageVx > 0){
+				finalX = params.windowWidth;
 				params.smoothImages.push(d);
 				bucket = "smoothText"
 
@@ -178,20 +220,8 @@ function finishImageMoves(){
 }
 
 /////////////////////
-//for the big image
-function showImage(i, offsetX=0){
-
-	var div = d3.select('#mainImageDiv')
-	var w = parseFloat(div.style('width'))
-	var h = parseFloat(div.style('height'))
-	div.append('img')
-		.attr('id','imgNow')
-		.attr('src','data/'+params.objData[i].image)
-		.style('position','absolute') 
-		.style('left',offsetX)
-
-}
-function populateStats(i){
+//for the Zooniverse stats
+function populateStats(img){
 
 
 	function makeStatsPlot(id, value, radius, strokeWidth, offsetX, offsetY){
@@ -202,8 +232,8 @@ function populateStats(i){
 		var top = parseFloat(div.style('top'));
 
 		var svg = div.append("svg")
-			.style('height', height)
-			.style('width', width)
+			.style('height', 2*radius + 2.*offsetY + 'px')
+			.style('width', params.growImageSize + 'px')
 			.style('position', 'absolute')
 			.style('top',0)
 			.style('left',0)
@@ -223,28 +253,33 @@ function populateStats(i){
 				.attr('stroke-width', strokeWidth)
 				.attr('fill', function(d){return params.colorMap(d/10.)});
 
-		var clipPath = svg.append('defs').append("clipPath")
-			.attr("id",id+'Clip')
-			.append('rect')
-				.attr("width", 0)
-				.attr("height", 50)
-				.attr("x", offsetX - radius - strokeWidth)
-				.attr("y", 0)
-		d3.select('#'+id+'Clip').selectAll('rect').transition(params.tTrans)
-			.attr("width", 2.5*radius*value)
+		// var clipPath = svg.append('defs').append("clipPath")
+		// 	.attr("id",id+'Clip')
+		// 	.append('rect')
+		// 		.attr("width", 0)
+		// 		.attr("height", 50)
+		// 		.attr("x", offsetX - radius - strokeWidth)
+		// 		.attr("y", 0)
+		// d3.select('#'+id+'Clip').selectAll('rect').transition(params.tTrans)
+		// 	.attr("width", 2.5*radius*value)
 
-		svg.attr('clip-path', 'url(#'+id+'Clip)');
+		// svg.attr('clip-path', 'url(#'+id+'Clip)');
 	}
 
 
+	var offsetX = 4;
+	var radius = (params.imageGrowSize/10. - 2.*offsetX)/2.5;
+	console.log(radius);
 
+	var spiral = 10*img['t04_spiral_a08_spiral_debiased'];
+	var smooth = 10*img['t01_smooth_or_features_a01_smooth_debiased'];
+	console.log("spiral, smooth", spiral, smooth)
 
-	var spiral = 10*params.objData[i]['t04_spiral_a08_spiral_debiased'];
-	var smooth = 10*params.objData[i]['t01_smooth_or_features_a01_smooth_debiased'];
-	console.log("ID, spiral, smooth", params.useIndex, spiral, smooth)
+	makeStatsPlot(getImageID(img), spiral, radius, 1, offsetX, 10)
+	makeStatsPlot(getImageID(img), smooth, radius, 1, offsetX, 40)
 
-	makeStatsPlot('spiralStats', spiral, 10, 1, 150, 10)
-	makeStatsPlot('smoothStats', smooth, 10, 1, 150, 10)
+	d3.select('#'+getImageID(img)).on('mouseup',function(){shrinkImage(img)});
+
 
 
 }
@@ -262,67 +297,45 @@ var step = d3.scaleLinear()
 
 }
 
-function advanceIndex(val, random=true){
 
-	params.objIndex += val;
-	if (params.objIndex < 0){
-		params.objIndex = params.objData.length-1;
+/**
+ * Randomly shuffle an array
+ * https://stackoverflow.com/a/2450976/1293256
+ * @param  {Array} array The array to shuffle
+ * @return {String}      The first item in the shuffled array
+ */
+var shuffle = function(array){
+
+	var currentIndex = array.length;
+	var temporaryValue, randomIndex;
+
+	// While there remain elements to shuffle...
+	while (0 !== currentIndex) {
+		// Pick a remaining element...
+		randomIndex = Math.floor(Math.random() * currentIndex);
+		currentIndex -= 1;
+
+		// And swap it with the current element.
+		temporaryValue = array[currentIndex];
+		array[currentIndex] = array[randomIndex];
+		array[randomIndex] = temporaryValue;
 	}
-	if (random){
-		params.useIndex = params.randomIndices[params.objIndex];
-	} else {
-		params.useIndex = params.objIndex;
-	}
-	
-}
-//create a new index list that is random
-function randomizeObjects(){
-	for(var i=0; i<params.objData.length; i++){
-		params.randomIndices.push(parseInt(Math.random()*params.objData.length));
-	}
-}
-function slideImage(val){
-	var w = parseFloat(d3.select('#mainImageDiv').style('width'))
-	var h = parseFloat(d3.select('#mainImageDiv').style('height'))
-	d3.select('#imgNow') //animation in css
-		.attr('id','imgPrev')
 
-	showImage(params.useIndex,-val*w);
+	return array;
 
-	var offsetX = val*w
-	d3.select('#imgNow')
-		.on('load',function(){
-			d3.select('#imgNow').style('left',0)
-			d3.select('#imgPrev').style('left',val*w+'px');
-		})
-		.on('transitionend',function(){
-			d3.selectAll('#imgPrev').remove()
-		})
+};
 
-}
 ///////////////////////////
 // runs on load
 ///////////////////////////
-// attach some functions to buttons
-d3.select('#nextButton').on('click',function(e){
-	advanceIndex(1);
-	slideImage(1);
-	populateStats(params.useIndex);
-})
-d3.select('#prevButton').on('click',function(e){
-	advanceIndex(-1);
-	slideImage(-1);
-	populateStats(params.useIndex);
-})
+
 //read in the data
 d3.json('data/GZ2data.json')
 	.then(function(data) {
-		params.objData = data;
+		params.objData = shuffle(data);
 		setColorMap();
-		randomizeObjects();
 		formatBucketText();
 		populateField();
-		//showImage(params.useIndex);
 		//populateStats(params.useIndex);
 	});
 

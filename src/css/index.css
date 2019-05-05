@@ -27,14 +27,7 @@ html, body {
 .hidden {
 	display:none;
 }
-.title {
-	padding:2px;
-	font-size:40px;
-}
-.subTitle {
-	padding:2px;
-	font-size:30px;
-}
+
 .caption {
 	padding:2px;
 	padding-left:10px;
@@ -51,33 +44,6 @@ html, body {
 	font-size:30px;
 	line-height: 36px
 }
-.imgButton{
-	position:absolute;
-	font-size:60px;
-	width:40px;
-	height:68px;
-	z-index:1;
-	top:200px;
-	background-color:none;
-	border:2px solid white;
-	color: white;
-	cursor:pointer;
-	opacity:0.5;
-}
-.imgButton:hover{
-	border:2px solid black;
-	background-color:white;
-	color:black;
-}
-#mainImageDiv{
-	position:absolute;
-	left:0;
-	top:0;
-	width:424px;
-	height:424px;
-	margin:10px;
-	clip: rect(0px, 428px, 428px, 0px);
-}
-.imageDiv img{
-	transition: 1s;
-}
+
+
+
