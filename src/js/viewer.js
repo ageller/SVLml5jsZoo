@@ -238,6 +238,8 @@ function finalMove(d, x0, y0, finalX, finalY, duration){
 						d3.select('#'+bucket).transition().duration(200)
 							.style('color','gray')
 					})
+			} else {
+				d3.select('#'+getImageID(d)).style('z-index',2)
 			}
 		})
 }
@@ -266,66 +268,59 @@ function finishImageMoves(){
 
 /////////////////////
 //for the Zooniverse stats
+function makeStatsPlot(id, clipID, value, radius, strokeWidth, offsetX){
+	var div = d3.select('#'+id);
+	var height = parseFloat(div.style('height'));
+	var width = parseFloat(div.style('width'));
+	var left = parseFloat(div.style('left'));
+	var top = parseFloat(div.style('top'));
+
+	var svg = div.append("svg")
+		.style('width', 2*radius + 'px')
+		.style('height', params.imageGrowSize + 'px')
+		.style('position', 'absolute')
+		.style('top',0 + 'px')
+		.style('left',offsetX + 'px')
+
+	data = []
+	for(var i=0; i<value; i++){
+		data.push(i)
+	}
+	data.push(i)
+	//console.log(data)
+	svg.selectAll('circle').data(data).enter()
+		.append('circle')
+			.attr('cx', radius)
+			.attr('cy', function(d){return params.imageGrowSize - (2.5*radius*d) - 2.5/2.*radius})
+			.attr('r', radius)
+			.attr('stroke', 'black')
+			.attr('stroke-width', strokeWidth)
+			.attr('fill', function(d){return params.colorMap(d/10.)});
+
+	var clipPath = svg.append('defs').append("clipPath")
+		.attr("id",clipID)
+		.append('rect')
+			.attr("width", 10*radius+'px')
+			.attr("height", 2.5*radius*value)
+			.attr("x", 0)
+			.attr("y", params.imageGrowSize )
+	d3.select('#'+clipID).selectAll('rect').transition().duration(1000)
+		.attr("y", params.imageGrowSize*(1.-value/10.))
+
+	svg.attr('clip-path', 'url(#'+clipID+')');
+}
 function populateStats(img){
 
-
-	function makeStatsPlot(id, value, radius, strokeWidth, offsetX, offsetY){
-		var div = d3.select('#'+id);
-		var height = parseFloat(div.style('height'));
-		var width = parseFloat(div.style('width'));
-		var left = parseFloat(div.style('left'));
-		var top = parseFloat(div.style('top'));
-
-		var svg = div.append("svg")
-			.style('height', 2*radius + 2.*offsetY + 'px')
-			.style('width', params.growImageSize + 'px')
-			.style('position', 'absolute')
-			.style('top',0)
-			.style('left',0)
-
-		data = []
-		for(var i=0; i<=value; i++){
-			data.push(i)
-		}
-		data.push(i)
-		//console.log(data)
-		svg.selectAll('circle').data(data).enter()
-			.append('circle')
-				.attr('cx', function(d){return 2.5*radius*d + offsetX})
-				.attr('cy', radius + offsetY)
-				.attr('r', radius)
-				.attr('stroke', 'black')
-				.attr('stroke-width', strokeWidth)
-				.attr('fill', function(d){return params.colorMap(d/10.)});
-
-		// var clipPath = svg.append('defs').append("clipPath")
-		// 	.attr("id",id+'Clip')
-		// 	.append('rect')
-		// 		.attr("width", 0)
-		// 		.attr("height", 50)
-		// 		.attr("x", offsetX - radius - strokeWidth)
-		// 		.attr("y", 0)
-		// d3.select('#'+id+'Clip').selectAll('rect').transition(params.tTrans)
-		// 	.attr("width", 2.5*radius*value)
-
-		// svg.attr('clip-path', 'url(#'+id+'Clip)');
-	}
-
-
-	var offsetX = 4;
-	var radius = (params.imageGrowSize/10. - 2.*offsetX)/2.5;
-	console.log(radius);
+	var radius = (params.imageGrowSize/10.)/2.5;
 
 	var spiral = 10*img['t04_spiral_a08_spiral_debiased'];
 	var smooth = 10*img['t01_smooth_or_features_a01_smooth_debiased'];
 	console.log("spiral, smooth", spiral, smooth)
 
-	makeStatsPlot(getImageID(img), spiral, radius, 1, offsetX, 10)
-	makeStatsPlot(getImageID(img), smooth, radius, 1, offsetX, 40)
+	makeStatsPlot(getImageID(img), getImageID(img)+'SpiralClip', spiral, radius, 1, -2.*radius - params.imageBorderWidth)
+	makeStatsPlot(getImageID(img), getImageID(img)+'SmoothClip', smooth, radius, 1, params.imageGrowSize)
 
 	d3.select('#'+getImageID(img)).on('mouseup',function(){shrinkImage(img)});
-
-
 
 }
 

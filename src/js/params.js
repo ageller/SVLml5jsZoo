@@ -15,7 +15,6 @@ function defineParams(){
 		this.useIndex = 0;
 		this.randomIndices = [];
 		this.colorMap;
-		this.tTrans = d3.transition().duration(1000);
 
 		this.bucketWidth = 150; //width of the divs for spiral and round
 		this.nImageHeight = 10; //number of images to fit in height of window
