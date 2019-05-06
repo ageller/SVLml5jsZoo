@@ -3,7 +3,7 @@ function formatBucketText(){
 	d3.select('body').append('div')
 		.attr('id','spiralText')
 		.text('Spiral')
-		.style('font-size',params.bucketWidth + 'px')
+		.style('font-size',params.bucketWidth*0.75 + 'px')
 		.style('position', 'absolute')
 		.style('color','gray')
 		.style('transform','rotate(90deg)')
@@ -18,7 +18,7 @@ function formatBucketText(){
 	d3.select('body').append('div')
 		.attr('id','smoothText')
 		.text('Smooth')
-		.style('font-size',params.bucketWidth + 'px')
+		.style('font-size',params.bucketWidth*0.75 + 'px')
 		.style('position', 'absolute')
 		.style('color','gray')
 		.style('transform','rotate(-90deg)')
@@ -88,10 +88,12 @@ function populateField(){
 			populateStats(d);
 			d3.event.preventDefault();
 		})
-		.on('mouseup', function(d){
-			shrinkImage(d);
+		.on('touchstart', function(d){
+			d.active = true;
+			growImage(d);
+			populateStats(d);
+			d3.event.preventDefault();
 		})
-
 
 	// svg.selectAll('circle').data(data).enter()
 	// .append('circle')
@@ -159,12 +161,12 @@ function handleImageMoves(){
 				var dt = d.dragImageSamples[1].timeStamp - d.dragImageSamples[0].timeStamp;
 				var diffX = x2-x1;
 				var diffY = y2-y1;
-				d.dragImageVx = diffX/dt*params.imageInertia;
-				d.dragImageVy = diffY/dt*params.imageInertia;
+				d.dragImageVx = diffX/dt;
+				d.dragImageVy = diffY/dt;
 
 				var left = parseFloat(d3.select('#'+getImageID(d)).style('left'))
 				var top = parseFloat(d3.select('#'+getImageID(d)).style('top'))
-				var position = [left + diffX, top + diffY];
+				var position = [left + diffX, Math.min(Math.max(top + diffY, 0), params.windowHeight - params.imageSize)];
 				d3.select('#'+getImageID(d))
 					.style('left', (position[0]) + 'px')
 					.style('top', (position[1]) + 'px')
@@ -175,41 +177,84 @@ function handleImageMoves(){
 	})
 }
 //need to avoid having images running off edge of table and getting lost (without going into bucket)
+function finalMove(d, x0, y0, finalX, finalY, duration){
+
+	//get equation of line so that we can find the intercept if needed
+	var m = (finalY - y0)/(finalX - x0);
+	var b = y0 - m*x0;
+	var distance = Math.sqrt((finalY - y0)*(finalY - y0) + (finalX - x0)*(finalX - x0));
+
+	//check if we end up off screen in y (bounce)
+	var bounce = false;
+	var finalX2 = finalX;
+	var finalY2 = finalY;
+	if (finalY < 0){
+		finalY2 = -1.*finalY;
+		finalY = 0;
+		bounce = true
+	}
+	if (finalY > params.windowHeight - params.imageSize){
+		finalY2 = finalY - (params.windowHeight - params.imageSize);
+		finalY = params.windowHeight - params.imageSize;
+		bounce = true
+	}
+
+	//check if we end up in a bucket
+	var bucket = null;
+	if (finalX < params.windowWidth*params.bucketSuction && d.dragImageVx < 0){
+		finalX = Math.min(finalX, -params.imageSize-params.imageBorderWidth);
+		params.spiralImages.push(d);
+		bucket = "spiralText";
+	}
+	if (finalX > params.windowWidth*(1. - params.bucketSuction) && d.dragImageVx > 0){
+		finalX = Math.max(finalX, params.windowWidth);
+		params.smoothImages.push(d);
+		bucket = "smoothText"
+	}
+	if (bucket){
+		bounce = false;
+	}
+
+	var easeFunc = d3.easePolyOut.exponent(1.5);
+	var durationUse = duration;
+	if (bounce){
+		easeFunc = d3.easeLinear;
+		finalX = (finalY - b)/m;
+		distance2 = Math.sqrt((finalY - y0)*(finalY - y0) + (finalX - x0)*(finalX - x0));
+		durationUse *= distance2/distance;
+	}
+
+	d3.select('#'+getImageID(d)).transition().ease(easeFunc).duration(durationUse)
+		.style('left', finalX + 'px')
+		.style('top', finalY + 'px')
+		.on('end', function(){
+			if (bounce){
+				finalMove(d, finalX, finalY, finalX2, finalY2, duration - durationUse)
+			}
+			if (bucket != null){
+				d3.select('#'+bucket).transition().duration(200)
+					.style('color','red')
+					.on('end',function(){
+						d3.select('#'+bucket).transition().duration(200)
+							.style('color','gray')
+					})
+			}
+		})
+}
 function finishImageMoves(){
 	params.objDataShown.forEach(function(d){
 		if (d.active){
+			if (parseFloat(d3.select('#'+getImageID(d)).style('height')) > params.imageSize){
+				shrinkImage(d);
+			}
+
 			var left = parseFloat(d3.select('#'+getImageID(d)).style('left'))
 			var top = parseFloat(d3.select('#'+getImageID(d)).style('top'))	
 
-			var finalX = left + d.dragImageVx*params.imageInertia;
-			var finalY = top + d.dragImageVy*params.imageInertia;
+			var finalX = left + d.dragImageVx*params.imageInertiaN;
+			var finalY = top + d.dragImageVy*params.imageInertiaN;
 
-			var bucket = null;
-			if (finalX < params.windowWidth*params.bucketSuction && d.dragImageVx < 0){
-				finalX = -params.imageSize-params.imageBorderWidth;
-				params.spiralImages.push(d);
-				bucket = "spiralText";
-			}
-			if (finalX > params.windowWidth*(1. - params.bucketSuction) && d.dragImageVx > 0){
-				finalX = params.windowWidth;
-				params.smoothImages.push(d);
-				bucket = "smoothText"
-
-			}
-
-			d3.select('#'+getImageID(d)).transition().ease(d3.easePolyOut).duration(params.imageInertiaN)
-				.style('left', finalX + 'px')
-				.style('top', finalY + 'px')
-				.on('end', function(){
-					if (bucket != null){
-						d3.select('#'+bucket).transition().duration(200)
-							.style('color','red')
-							.on('end',function(){
-								d3.select('#'+bucket).transition().duration(200)
-									.style('color','gray')
-							})
-					}
-				})
+			finalMove(d, left, top, finalX, finalY, params.imageInertiaN)
 
 
 
@@ -339,6 +384,8 @@ d3.json('data/GZ2data.json')
 		//populateStats(params.useIndex);
 	});
 
-d3.select('body')
+d3.select(window)
 	.on('mousemove', handleImageMoves)
 	.on('mouseup', finishImageMoves)
+	.on('touchmove', handleImageMoves)
+	.on('touchend', finishImageMoves)
