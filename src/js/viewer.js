@@ -5,7 +5,7 @@ function formatBucketText(){
 		.text('Spiral')
 		.style('font-size',params.bucketWidth*0.75 + 'px')
 		.style('position', 'absolute')
-		.style('color','gray')
+		.style('color',params.spiralColor)
 		.style('transform','rotate(90deg)')
 		.style('margin','20px')
 
@@ -20,7 +20,7 @@ function formatBucketText(){
 		.text('Smooth')
 		.style('font-size',params.bucketWidth*0.75 + 'px')
 		.style('position', 'absolute')
-		.style('color','gray')
+		.style('color',params.smoothColor)
 		.style('transform','rotate(-90deg)')
 		.style('margin','20px')
 
@@ -43,11 +43,13 @@ function populateField(){
 		.style('height', h+'px')
 
 	//calculate how many can fit in this grid
-	params.imageSize = (h - 2.*params.imageBorderWidth)/params.nImageHeight; //including border
+	params.imageSize = (h - params.imageSepFac*params.imageBorderWidth)/params.nImageHeight; //including border
 	params.imageGrowSize = Math.min(424, params.imageSize*params.imageGrow)
+	var divHeight = params.nImageHeight*params.imageSize;
 	var divWidth = Math.min(w - 2.*params.bucketWidth, params.objData.length/params.nImageHeight*params.imageSize);
 	var nImageWidth = Math.floor(divWidth/params.imageSize);
 	var xOffset = (w - divWidth)/2. ;
+	var yOffset = (h - divHeight)/2. ;
 
 	//check which ones will be shown
 	params.objData.forEach(function(d,i){
@@ -55,7 +57,7 @@ function populateField(){
 		var top = (i % params.nImageHeight)*params.imageSize;
 		if (left < divWidth){
 			d.left = left + xOffset;
-			d.top = top;
+			d.top = top + yOffset;
 			d.active = false;
 			d.dragImageSamples = [];
 			params.objDataShown.push(d);
@@ -71,17 +73,17 @@ function populateField(){
 		.attr('id',function(d){return getImageID(d)})
 		.style('border-style','solid')
 		.style('border-width',params.imageBorderWidth + 'px')
-		.style('border-color','red')
-		.style('width', params.imageSize - params.imageBorderWidth + 'px') //overlap the borders, for a cleaner look
-		.style('height',params.imageSize - params.imageBorderWidth + 'px')
+		.style('border-color',params.unknownColor)
+		.style('width', params.imageSize - params.imageSepFac*params.imageBorderWidth + 'px') 
+		.style('height',params.imageSize - params.imageSepFac*params.imageBorderWidth + 'px')
 		.style('position','absolute')
 		.style('left',function(d,i){return d.left + 'px'})
 		.style('top',function(d,i){return d.top + 'px'})
 		.style('z-index',1)
 		.append('img')
 			.attr('src',function(d){return 'data/'+d.image})
-			.attr('width',params.imageSize - params.imageBorderWidth + 'px')
-			.attr('height',params.imageSize - params.imageBorderWidth + 'px')
+			.attr('width',params.imageSize - params.imageSepFac*params.imageBorderWidth + 'px')
+			.attr('height',params.imageSize - params.imageSepFac*params.imageBorderWidth + 'px')
 		.on('mousedown', function(d){
 			d.active = true;
 			growImage(d);
@@ -114,28 +116,28 @@ function growImage(d){
 	d3.select('#'+getImageID(d))
 		.style('z-index',10)
 	d3.select('#'+getImageID(d)).transition().duration(200)
-		.style('height',params.imageGrowSize - params.imageBorderWidth + 'px')
-		.style('width',params.imageGrowSize - params.imageBorderWidth + 'px')
+		.style('height',params.imageGrowSize - params.imageSepFac*params.imageBorderWidth + 'px')
+		.style('width',params.imageGrowSize - params.imageSepFac*params.imageBorderWidth + 'px')
 		.style('margin-top', (params.imageSize - params.imageGrowSize)/2. + 'px')
 		.style('margin-left', (params.imageSize - params.imageGrowSize)/2. + 'px')
 		.style('box-shadow', '10px 10px 10px black');
 
 	d3.select('#'+getImageID(d)).select('img').transition().duration(200)
-		.attr('height',params.imageGrowSize - params.imageBorderWidth + 'px')
-		.attr('width',params.imageGrowSize - params.imageBorderWidth + 'px')
+		.attr('height',params.imageGrowSize - params.imageSepFac*params.imageBorderWidth + 'px')
+		.attr('width',params.imageGrowSize - params.imageSepFac*params.imageBorderWidth + 'px')
 	
 }
 function shrinkImage(d){
 	//for some reason, the transitions don't work for the outer div here?
 	d3.select('#'+getImageID(d))//.transition().duration(200)
-		.style('height',params.imageSize - params.imageBorderWidth + 'px')
-		.style('width',params.imageSize - params.imageBorderWidth + 'px')
+		.style('height',params.imageSize - params.imageSepFac*params.imageBorderWidth + 'px')
+		.style('width',params.imageSize - params.imageSepFac*params.imageBorderWidth + 'px')
 		.style('margin-top', '0px')
 		.style('margin-left', '0px')
 		.style('box-shadow', 'none');
 	d3.select('#'+getImageID(d)).select('img')//.transition().duration(200)
-		.attr('height',params.imageSize - params.imageBorderWidth + 'px')
-		.attr('width',params.imageSize - params.imageBorderWidth + 'px')
+		.attr('height',params.imageSize - params.imageSepFac*params.imageBorderWidth + 'px')
+		.attr('width',params.imageSize - params.imageSepFac*params.imageBorderWidth + 'px')
 	d3.select('#'+getImageID(d)).selectAll('svg').remove()
 }
 function handleImageMoves(){
@@ -213,6 +215,7 @@ function finalMove(d, x0, y0, finalX, finalY, duration){
 	}
 	if (bucket){
 		bounce = false;
+		params.modelUpdateNeeded = true;
 	}
 
 	var easeFunc = d3.easePolyOut.exponent(1.5);
@@ -232,11 +235,27 @@ function finalMove(d, x0, y0, finalX, finalY, duration){
 				finalMove(d, finalX, finalY, finalX2, finalY2, duration - durationUse)
 			}
 			if (bucket != null){
+				/////////////////////////////////
+				if (params.spiralImages.length > 2 && params.smoothImages.length > 2 ){	
+					runModel();
+				}	
+				/////////////////////////////////
+				var growFac = 1.2;
+				tSize = parseFloat(d3.select('#'+bucket).style('font-size'));
+				left = parseFloat(d3.select('#'+bucket).style('left'));
+				if (bucket == "spiralText"){
+					leftOffset = left + tSize/3.; //don't understand this offset
+				} else {
+					leftOffset = left - tSize/3.;
+				}
 				d3.select('#'+bucket).transition().duration(200)
-					.style('color','red')
-					.on('end',function(){
+					.style('font-size',tSize*growFac + 'px')
+					.style('left',leftOffset + 'px')
+					.on('end',function(){					
 						d3.select('#'+bucket).transition().duration(200)
-							.style('color','gray')
+							.style('font-size',tSize + 'px')
+							.style('left',left + 'px')
+
 					})
 			} else {
 				d3.select('#'+getImageID(d)).style('z-index',2)
@@ -364,7 +383,12 @@ var shuffle = function(array){
 	return array;
 
 };
-
+function init(){
+	setColorMap();
+	formatBucketText();
+	populateField();
+	initializeML();
+}
 ///////////////////////////
 // runs on load
 ///////////////////////////
@@ -373,10 +397,7 @@ var shuffle = function(array){
 d3.json('data/GZ2data.json')
 	.then(function(data) {
 		params.objData = shuffle(data);
-		setColorMap();
-		formatBucketText();
-		populateField();
-		//populateStats(params.useIndex);
+		init();
 	});
 
 d3.select(window)
@@ -384,3 +405,12 @@ d3.select(window)
 	.on('mouseup', finishImageMoves)
 	.on('touchmove', handleImageMoves)
 	.on('touchend', finishImageMoves)
+
+//always be classifying
+// var checkClassifier = setInterval(function(){ 
+// 	if (!params.modelBusy && params.spiralImages.length >= 2 && params.smoothImages.length >= 2 && params.modelUpdateNeeded){	
+// 		params.modelBusy = true;
+// 		runModel();
+// 	};
+// },params.modelCheckInterval)
+

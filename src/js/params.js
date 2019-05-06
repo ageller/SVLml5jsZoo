@@ -19,6 +19,7 @@ function defineParams(){
 		this.bucketWidth = 150; //width of the divs for spiral and round
 		this.nImageHeight = 10; //number of images to fit in height of window
 		this.imageBorderWidth = 4;
+		this.imageSepFac = 2.5 ;//2 would be right next to eachother
 		this.imageSize; //will be set in code
 		this.imageGrow = 5.5;
 		this.imageGrowSize;
@@ -28,6 +29,19 @@ function defineParams(){
 		this.imageInertia = 10;//
 
 		this.bucketSuction = 0.0; //percent of screen width to suck in a galaxy to either side
+
+		//ml5
+		this.featureExtractor = null;
+		this.classifier = null;
+		this.modelReady = false;
+		this.modelBusy = false;
+		this.modelUpdateNeeded = true;
+		this.doneTraining = 0;
+		this.modelCheckInterval = 10; //ms between checks of finished model
+		//improve this
+		this.unknownColor = "red"
+		this.smoothColor = "green";
+		this.spiralColor = "blue";
 	}
 }
 defineParams();
