@@ -24,6 +24,9 @@ function defineParams(){
 		this.imageGrow = 5.5;
 		this.imageGrowSize;
 		
+		this.buttonHeight = 50;// pixels
+		this.buttonMargin = 2;// pixels
+
 		//for moving images
 		this.imageInertiaN = 1000; //reference time in ms for inertia
 		this.imageInertia = 10;//
@@ -37,10 +40,10 @@ function defineParams(){
 		this.modelBusy = false;
 		this.modelUpdateNeeded = true;
 		this.doneTraining = 0;
-		this.modelCheckInterval = 10; //ms between checks of finished model
+		this.modelCheckInterval = 1000; //ms between checks of finished model
 		//improve this
-		this.unknownColor = "red"
-		this.smoothColor = "green";
+		this.unknownColor = "gray"
+		this.smoothColor = "red";
 		this.spiralColor = "blue";
 	}
 }

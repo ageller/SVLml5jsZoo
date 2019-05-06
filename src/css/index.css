@@ -44,6 +44,18 @@ html, body {
 	font-size:30px;
 	line-height: 36px
 }
-
-
-
+.buttonDiv{
+	padding: 2px;
+	text-align: center;
+	border: 4px solid var(--button-foreground-color);
+	border-radius: 15px;
+	opacity: 1.0;
+	display:block;
+	color: var(--button-foreground-color);
+	background-color:var(--button-background-color);
+	cursor: pointer;
+}
+.buttonDiv:hover {
+	background-color: var(--button-foreground-color);
+	color: var(--button-background-color);
+}

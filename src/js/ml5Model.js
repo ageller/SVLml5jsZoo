@@ -106,12 +106,12 @@ function gotResults(d, err, results) {
 	var smooth = 10*d['t01_smooth_or_features_a01_smooth_debiased'];
 	if (results && results[0]) {
 		console.log("img, err, results[0]", d.image, spiral, smooth, err, results[0], results)
-		var cColor = "gray"
+		var cColor = params.unknownColor;
 		if (results[0].label == "spiral"){
-			cColor = params.spiralColor
+			cColor = params.spiralColorMap(results[0].confidence);
 		}
 		if (results[0].label == "smooth"){
-			cColor = params.smoothColor
+			cColor = params.smoothColorMap(results[0].confidence);
 		}
 		d3.select('#'+getImageID(d)).style('border-color',cColor)
 	}
@@ -133,8 +133,9 @@ function runModel(){
 					clearInterval(check2);
 					params.objDataShown.forEach(function(d, i){
 						classify(d);
+						console.log(i, params.objDataShown.length)
 						if (i >= params.objDataShown.length){
-							//params.modelBusy = false;
+							params.modelBusy = false;
 							params.modelUpdateNeeded = false;
 						}
 					})

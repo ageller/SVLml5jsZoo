@@ -43,13 +43,13 @@ function populateField(){
 		.style('height', h+'px')
 
 	//calculate how many can fit in this grid
-	params.imageSize = (h - params.imageSepFac*params.imageBorderWidth)/params.nImageHeight; //including border
+	params.imageSize = (h - params.imageSepFac*params.imageBorderWidth - params.buttonHeight - 2.*params.buttonMargin)/params.nImageHeight; //including border
 	params.imageGrowSize = Math.min(424, params.imageSize*params.imageGrow)
 	var divHeight = params.nImageHeight*params.imageSize;
 	var divWidth = Math.min(w - 2.*params.bucketWidth, params.objData.length/params.nImageHeight*params.imageSize);
 	var nImageWidth = Math.floor(divWidth/params.imageSize);
 	var xOffset = (w - divWidth)/2. ;
-	var yOffset = (h - divHeight)/2. ;
+	var yOffset = 0;//(h - divHeight)/2. ;
 
 	//check which ones will be shown
 	params.objData.forEach(function(d,i){
@@ -106,10 +106,34 @@ function populateField(){
 	// 	.attr('stroke-width', strokeWidth)
 	// 	.attr('fill', function(d){return params.colorMap(d/10.)});
 }
+
+//will improve look and feel later
+//also need to only allow under certain conditions
+function createButtons(){
+	d3.select('body').append('div')
+		.attr('id','trainingButton')
+		.attr('class', 'buttonDiv')
+		.style('height', params.buttonHeight + 'px')
+		.style('font-size', params.buttonHeight*0.75 + 'px')
+		.style('line-height', params.buttonHeight + 'px')
+		.style('text-align','center')
+		.style('cursor','pointer')
+		.style('position','absolute')
+		.style('margin',params.buttonMargin + 'px')
+		.text('Train Model')
+		.on('mousedown',runModel)
+		.on('touchStart',runModel)
+
+	var w = parseFloat(d3.select('#trainingButton').node().getBoundingClientRect().width);
+	var h = parseFloat(d3.select('#trainingButton').node().getBoundingClientRect().height);
+	d3.select('#trainingButton')
+		.style('left',(params.windowWidth - w)/2. + 'px')  //why is this 20 and I use 10 below
+		.style('top', params.windowHeight - h - 2.*params.buttonMargin + 'px')
+}
+
 function getImageID(d){
 	return d.image.split('.').join('').split('/').join('');
 }
-
 function growImage(d){
 	var top = d3.select('#'+getImageID(d)).style('top')
 	var left = d3.select('#'+getImageID(d)).style('left')
@@ -235,11 +259,11 @@ function finalMove(d, x0, y0, finalX, finalY, duration){
 				finalMove(d, finalX, finalY, finalX2, finalY2, duration - durationUse)
 			}
 			if (bucket != null){
-				/////////////////////////////////
-				if (params.spiralImages.length > 2 && params.smoothImages.length > 2 ){	
-					runModel();
-				}	
-				/////////////////////////////////
+				// /////////////////////////////////
+				// if (params.spiralImages.length > 2 && params.smoothImages.length > 2 ){	
+				// 	runModel();
+				// }	
+				// /////////////////////////////////
 				var growFac = 1.2;
 				tSize = parseFloat(d3.select('#'+bucket).style('font-size'));
 				left = parseFloat(d3.select('#'+bucket).style('left'));
@@ -287,7 +311,7 @@ function finishImageMoves(){
 
 /////////////////////
 //for the Zooniverse stats
-function makeStatsPlot(id, clipID, value, radius, strokeWidth, offsetX){
+function makeStatsPlot(id, clipID, value, radius, strokeWidth, offsetX, colorMap){
 	var div = d3.select('#'+id);
 	var height = parseFloat(div.style('height'));
 	var width = parseFloat(div.style('width'));
@@ -314,7 +338,7 @@ function makeStatsPlot(id, clipID, value, radius, strokeWidth, offsetX){
 			.attr('r', radius)
 			.attr('stroke', 'black')
 			.attr('stroke-width', strokeWidth)
-			.attr('fill', function(d){return params.colorMap(d/10.)});
+			.attr('fill', function(d){return colorMap(d/10.)});
 
 	var clipPath = svg.append('defs').append("clipPath")
 		.attr("id",clipID)
@@ -336,8 +360,8 @@ function populateStats(img){
 	var smooth = 10*img['t01_smooth_or_features_a01_smooth_debiased'];
 	console.log("spiral, smooth", spiral, smooth)
 
-	makeStatsPlot(getImageID(img), getImageID(img)+'SpiralClip', spiral, radius, 1, -2.*radius - params.imageBorderWidth)
-	makeStatsPlot(getImageID(img), getImageID(img)+'SmoothClip', smooth, radius, 1, params.imageGrowSize)
+	makeStatsPlot(getImageID(img), getImageID(img)+'SpiralClip', spiral, radius, 1, -2.*radius - params.imageBorderWidth, params.spiralColorMap)
+	makeStatsPlot(getImageID(img), getImageID(img)+'SmoothClip', smooth, radius, 1, params.imageGrowSize, params.smoothColorMap)
 
 	d3.select('#'+getImageID(img)).on('mouseup',function(){shrinkImage(img)});
 
@@ -345,7 +369,7 @@ function populateStats(img){
 
 //https://bl.ocks.org/EfratVil/903d82a7cde553fb6739fe55af6103e2
 function setColorMap(){
-var step = d3.scaleLinear()
+	var step = d3.scaleLinear()
 		.domain([1, 8])
 		.range([0, 1]);
 
@@ -355,6 +379,19 @@ var step = d3.scaleLinear()
 		.interpolate(d3.interpolateHcl); //interpolateHsl interpolateHcl interpolateRgb
 
 }
+function setColorMaps(){
+
+	params.smoothColorMap= d3.scaleLinear()
+		.domain([0, 1])
+		.range([d3.rgb(params.unknownColor), d3.rgb(params.smoothColor)])
+		.interpolate(d3.interpolateRgb); //interpolateHsl interpolateHcl interpolateRgb
+
+	params.spiralColorMap= d3.scaleLinear()
+		.domain([0, 1])
+		.range([d3.rgb(params.unknownColor), d3.rgb(params.spiralColor)])
+		.interpolate(d3.interpolateRgb); //interpolateHsl interpolateHcl interpolateRgb
+
+	}
 
 
 /**
@@ -384,9 +421,10 @@ var shuffle = function(array){
 
 };
 function init(){
-	setColorMap();
+	setColorMaps();
 	formatBucketText();
 	populateField();
+	createButtons();
 	initializeML();
 }
 ///////////////////////////
@@ -408,6 +446,7 @@ d3.select(window)
 
 //always be classifying
 // var checkClassifier = setInterval(function(){ 
+// 	console.log(params.modelBusy, params.spiralImages.length, params.smoothImages.length, params.modelUpdateNeeded)
 // 	if (!params.modelBusy && params.spiralImages.length >= 2 && params.smoothImages.length >= 2 && params.modelUpdateNeeded){	
 // 		params.modelBusy = true;
 // 		runModel();
