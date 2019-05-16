@@ -113,13 +113,14 @@ function gotResults(d, err, results) {
 		if (results[0].label == "smooth"){
 			cColor = params.smoothColorMap(results[0].confidence);
 		}
-		d3.select('#'+getImageID(d)).style('border-color',cColor)
+		d3.select('#'+getImageID(d)).transition().duration(1000).style('border-color',cColor)
 	}
 
 }
 
 //run everything once
 function runModel(){
+	showSplash('training', true)
 	params.modelReady = false;
 	params.modelBusy = true;
 	params.doneTraining = 0;
@@ -131,6 +132,7 @@ function runModel(){
 			var check2 = setInterval(function(){ //wait training is finished
 				if (params.doneTraining == 3){
 					clearInterval(check2);
+					showSplash('training', false)
 					params.objDataShown.forEach(function(d, i){
 						classify(d);
 						console.log(i, params.objDataShown.length)

@@ -402,7 +402,7 @@ function makeStatsPlot(id, clipID, value, radius, strokeWidth, offsetX, colorMap
 	var left = parseFloat(div.style('left'));
 	var top = parseFloat(div.style('top'));
 
-	var sWidth = params.imageBorderWidth;
+	var sWidth = 0;//params.imageBorderWidth;
 
 	var svg = div.append("svg")
 		.style('width', 2*radius + 2*sWidth + 'px')
@@ -460,9 +460,8 @@ function populateStats(img){
 	var smooth = 10*img['t01_smooth_or_features_a01_smooth_debiased'];
 	console.log("spiral, smooth", spiral, smooth)
 
-	//I don't understand these offsets! but it looks correct in the browser
-	makeStatsPlot(getImageID(img), getImageID(img)+'SpiralClip', spiral, radius, 1, -2.*radius - 2.5*params.imageBorderWidth, params.spiralColorMap)
-	makeStatsPlot(getImageID(img), getImageID(img)+'SmoothClip', smooth, radius, 1, params.imageGrowSize - 2*params.imageBorderWidth, params.smoothColorMap)
+	makeStatsPlot(getImageID(img), getImageID(img)+'SpiralClip', spiral, radius, 1, -2.*radius - params.imageBorderWidth, params.spiralColorMap)
+	makeStatsPlot(getImageID(img), getImageID(img)+'SmoothClip', smooth, radius, 1, params.imageGrowSize - 1.5*params.imageBorderWidth, params.smoothColorMap)
 
 	d3.select('#'+getImageID(img)).on('mouseup',function(){shrinkImage(img)});
 
@@ -504,22 +503,33 @@ function createInstructionsSplash(){
 		.style('font-size','48px')
 		.style('cursor','pointer')
 		.on('click',function(){
-			showInstructionsSplash(false)	
+			showSplash('instructions',false)	
 		})
 		.text('Instructions')
 }
-function showInstructionsSplash(show){
+function createTrainingSplash(){
+	d3.select('body').append('div')
+		.attr('id','training')
+		.attr('class','splash blink_me')
+		.style('line-height',params.windowHeight + 'px')
+		.style('text-align', 'center')
+		.style('font-size','48px')
+		.text('Training Model')
+		.classed('hidden', true);
+}
+function showSplash(id, show){
+	console.log('showSplash',id, show)
 	var op = 0;
 	if (show){
 		op = 0.99
-		d3.select('#instructions').classed('hidden', false)
+		d3.select('#'+id).classed('hidden', false)
 	}
-	d3.select('#instructions').transition().duration(500)
+	d3.select('#'+id).transition().duration(500)
 		.style('background-color','rgba(50, 50, 50,'+op+')')
 		.style('opacity',op)
 		.on('end',function(){
 			if (!show){
-				d3.select('#instructions').classed('hidden', true);
+				d3.select('#'+id).classed('hidden', true);
 			}
 		})
 }
@@ -557,6 +567,7 @@ function reset(){
 }
 function init(){
 	createInstructionsSplash();
+	createTrainingSplash();
 	setColorMaps();
 	formatBucketText();
 	populateField();
