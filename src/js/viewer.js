@@ -34,13 +34,15 @@ function formatBucketText(){
 
 //grid for small images
 function populateField(){
+	d3.selectAll('#fieldDiv').remove();
+
 	var w = params.windowWidth; 
 	var h = params.windowHeight; 
 	var field = d3.select('body').append('div')
 		.attr('id','fieldDiv')
 		.style('position','absolute')
-		.style('width', w+'px')
-		.style('height', h+'px')
+		.style('width', w + 'px')
+		.style('height', h - params.buttonHeight - 2.*params.buttonMargin + 'px')
 
 	//calculate how many can fit in this grid
 	params.imageSize = (h - params.imageSepFac*params.imageBorderWidth - params.buttonHeight - 2.*params.buttonMargin)/params.nImageHeight; //including border
@@ -50,6 +52,9 @@ function populateField(){
 	var nImageWidth = Math.floor(divWidth/params.imageSize);
 	var xOffset = (w - divWidth)/2. ;
 	var yOffset = 0;//(h - divHeight)/2. ;
+
+	params.imageGridLeft = xOffset;
+	params.imageGridWidth = divWidth;
 
 	//check which ones will be shown
 	params.objData.forEach(function(d,i){
@@ -70,6 +75,7 @@ function populateField(){
 
 	field.selectAll('div').data(params.objDataShown).enter()
 		.append('div')
+		.attr('class','imageField')
 		.attr('id',function(d){return getImageID(d)})
 		.style('border-style','solid')
 		.style('border-width',params.imageBorderWidth + 'px')
@@ -117,7 +123,6 @@ function createButtons(){
 		.style('font-size', params.buttonHeight*0.75 + 'px')
 		.style('line-height', params.buttonHeight + 'px')
 		.style('text-align','center')
-		.style('cursor','pointer')
 		.style('position','absolute')
 		.style('margin',params.buttonMargin + 'px')
 		.text('Train Model')
@@ -127,10 +132,81 @@ function createButtons(){
 	var w = parseFloat(d3.select('#trainingButton').node().getBoundingClientRect().width);
 	var h = parseFloat(d3.select('#trainingButton').node().getBoundingClientRect().height);
 	d3.select('#trainingButton')
-		.style('left',(params.windowWidth - w)/2. + 'px')  //why is this 20 and I use 10 below
+		.style('left',(params.windowWidth)/2. + 2.*params.buttonMargin + 'px')  
 		.style('top', params.windowHeight - h - 2.*params.buttonMargin + 'px')
+
+
+	d3.select('body').append('div')
+		.attr('id','resetButton')
+		.attr('class', 'buttonDiv')
+		.style('height', params.buttonHeight + 'px')
+		.style('width', w + 'px')
+		.style('font-size', params.buttonHeight*0.75 + 'px')
+		.style('line-height', params.buttonHeight + 'px')
+		.style('text-align','center')
+		.style('position','absolute')
+		.style('margin',params.buttonMargin + 'px')
+		.style('left',(params.windowWidth)/2. - w - 2.*params.buttonMargin + 'px')  
+		.style('top', params.windowHeight - h - 2.*params.buttonMargin + 'px')
+		.text('Reset')
+		.on('mousedown',reset)
+		.on('touchStart',reset)
+
+
+
 }
 
+function createCounters(){
+	var spiralCounter = d3.select('body').append('div')
+		.attr('id','spiralCounter')
+		.attr('class', 'buttonDiv')
+		.style('height', params.buttonHeight + 'px')
+		.style('position','absolute')
+		.style('margin',params.buttonMargin + 'px')
+		
+	spiralCounter.append('div')
+		.style('font-size', params.buttonHeight*0.75 + 'px')
+		.style('line-height', params.buttonHeight*0.75 + 'px')
+		.style('text-align','center')
+		.attr('id','spiralN')
+		.text(params.spiralImages.length)
+	spiralCounter.append('div')
+		.style('font-size', params.buttonHeight*0.25 + 'px')
+		.style('line-height', params.buttonHeight*0.25 + 'px')
+		.style('text-align','center')
+		.text('# spiral images in model')
+
+	var w = parseFloat(d3.select('#spiralCounter').node().getBoundingClientRect().width);
+	var h = parseFloat(d3.select('#spiralCounter').node().getBoundingClientRect().height);
+	d3.select('#spiralCounter')
+		.style('width',w + 'px')
+		.style('left',params.imageGridLeft - params.buttonMargin + 'px')  
+		.style('top', params.windowHeight - h - 2.*params.buttonMargin + 'px')
+
+	var smoothCounter = d3.select('body').append('div')
+		.attr('id','smoothCounter')
+		.attr('class', 'buttonDiv')
+		.style('height', params.buttonHeight + 'px')
+		.style('width',w + 'px')
+		.style('position','absolute')
+		.style('margin',params.buttonMargin + 'px')
+		.style('left',params.imageGridWidth + params.imageGridLeft - w - 2.*params.buttonMargin -2 + 'px')  //where's the extra 2 coming from? 
+		.style('top', params.windowHeight - h - 2.*params.buttonMargin + 'px')
+
+	smoothCounter.append('div')
+		.style('font-size', params.buttonHeight*0.75 + 'px')
+		.style('line-height', params.buttonHeight*0.75 + 'px')
+		.style('text-align','center')
+		.attr('id','smoothN')
+		.text(params.smoothImages.length)
+	smoothCounter.append('div')
+		.style('font-size', params.buttonHeight*0.25 + 'px')
+		.style('line-height', params.buttonHeight*0.25 + 'px')
+		.style('text-align','center')
+		.text('# smooth images in model')
+
+
+}
 function getImageID(d){
 	return d.image.split('.').join('').split('/').join('');
 }
@@ -268,7 +344,7 @@ function finalMove(d, x0, y0, finalX, finalY, duration){
 				tSize = parseFloat(d3.select('#'+bucket).style('font-size'));
 				left = parseFloat(d3.select('#'+bucket).style('left'));
 				if (bucket == "spiralText"){
-					leftOffset = left + tSize/3.; //don't understand this offset
+					leftOffset = left - tSize/3.; //don't understand this offset
 				} else {
 					leftOffset = left - tSize/3.;
 				}
@@ -279,6 +355,11 @@ function finalMove(d, x0, y0, finalX, finalY, duration){
 						d3.select('#'+bucket).transition().duration(200)
 							.style('font-size',tSize + 'px')
 							.style('left',left + 'px')
+						if (bucket == "spiralText"){
+							d3.select('#spiralN').text(params.spiralImages.length)
+						} else {
+							d3.select('#smoothN').text(params.smoothImages.length)
+						}
 
 					})
 			} else {
@@ -420,12 +501,19 @@ var shuffle = function(array){
 	return array;
 
 };
+function reset(){
+	params.spiralImages=[];
+	params.smoothImages=[];
+	params.objDataShown=[];
+	populateField();
+}
 function init(){
 	setColorMaps();
 	formatBucketText();
 	populateField();
 	createButtons();
 	initializeML();
+	createCounters();
 }
 ///////////////////////////
 // runs on load

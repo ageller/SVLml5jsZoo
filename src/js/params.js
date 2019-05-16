@@ -13,7 +13,6 @@ function defineParams(){
 
 		this.objIndex = 0;
 		this.useIndex = 0;
-		this.randomIndices = [];
 		this.colorMap;
 
 		this.bucketWidth = 150; //width of the divs for spiral and round
@@ -23,6 +22,8 @@ function defineParams(){
 		this.imageSize; //will be set in code
 		this.imageGrow = 5.5;
 		this.imageGrowSize;
+		this.imageGridLeft;
+		this.imageGridWidth;
 		
 		this.buttonHeight = 50;// pixels
 		this.buttonMargin = 2;// pixels
