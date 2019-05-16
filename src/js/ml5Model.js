@@ -105,15 +105,34 @@ function gotResults(d, err, results) {
 	var spiral = 10*d['t04_spiral_a08_spiral_debiased'];
 	var smooth = 10*d['t01_smooth_or_features_a01_smooth_debiased'];
 	if (results && results[0]) {
-		console.log("img, err, results[0]", d.image, spiral, smooth, err, results[0], results)
 		var cColor = params.unknownColor;
 		if (results[0].label == "spiral"){
 			cColor = params.spiralColorMap(results[0].confidence);
+			if (spiral > smooth){
+				d.agree = true;
+			} else {
+				d.agree = false;
+			}
 		}
 		if (results[0].label == "smooth"){
 			cColor = params.smoothColorMap(results[0].confidence);
+			if (smooth > spiral){
+				d.agree = true;
+			} else {
+				d.agree = false;
+			}
 		}
-		d3.select('#'+getImageID(d)).transition().duration(1000).style('border-color',cColor)
+		d3.select('#'+getImageID(d)).transition().duration(1000)
+			.style('border-color',cColor)
+			.on('end', function(){
+				if (d.agree){
+					d3.select('#'+getImageID(d)).select('#textBox').text('')
+				}else{
+					d3.select('#'+getImageID(d)).select('#textBox').text('X')
+				}
+			})
+		console.log("img, err, results[0]", d.image, spiral, smooth, err, results[0], results, d.agree)
+
 	}
 
 }

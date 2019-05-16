@@ -75,7 +75,7 @@ function populateField(){
 	console.log('N images available, used', params.objData.length, params.objDataShown.length)
 	console.log('image size', params.imageSize)
 
-	field.selectAll('div').data(params.objDataShown).enter()
+	var div = field.selectAll('div').data(params.objDataShown).enter()
 		.append('div')
 		.attr('class','imageField')
 		.attr('id',function(d){return getImageID(d)})
@@ -88,10 +88,6 @@ function populateField(){
 		.style('left',function(d,i){return d.left + 'px'})
 		.style('top',function(d,i){return d.top + 'px'})
 		.style('z-index',1)
-		.append('img')
-			.attr('src',function(d){return 'data/'+d.image})
-			.attr('width',params.imageSize - params.imageSepFac*params.imageBorderWidth + 'px')
-			.attr('height',params.imageSize - params.imageSepFac*params.imageBorderWidth + 'px')
 		.on('mousedown', function(d){
 			d.active = true;
 			growImage(d);
@@ -103,6 +99,23 @@ function populateField(){
 			d3.event.preventDefault();
 		})
 
+	div.append('img')
+			.attr('src',function(d){return 'data/'+d.image})
+			.attr('width',params.imageSize - params.imageSepFac*params.imageBorderWidth + 'px')
+			.attr('height',params.imageSize - params.imageSepFac*params.imageBorderWidth + 'px')
+
+
+	div.append('div')
+		.attr('id', 'textBox')
+		.style('width', params.imageSize - params.imageSepFac*params.imageBorderWidth + 'px') 
+		.style('height',params.imageSize - params.imageSepFac*params.imageBorderWidth + 'px')
+		.style('position','absolute')
+		.style('left',0)
+		.style('top',0)
+		.style('line-height', params.imageSize - params.imageSepFac*params.imageBorderWidth + 'px')
+		.style('font-size', params.imageSize - params.imageSepFac*params.imageBorderWidth + 'px')
+		.style('text-align','center')
+		.style('color',getComputedStyle(document.documentElement).getPropertyValue('--background-color'))
 	// svg.selectAll('circle').data(data).enter()
 	// .append('circle')
 	// 	.attr('cx', function(d){return 2.5*radius*d + offsetX})
