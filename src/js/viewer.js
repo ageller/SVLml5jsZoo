@@ -43,6 +43,8 @@ function populateField(){
 		.style('position','absolute')
 		.style('width', w + 'px')
 		.style('height', h - params.buttonHeight - 2.*params.buttonMargin + 'px')
+		.style('top','0px')
+		.style('left','0px')
 
 	//calculate how many can fit in this grid
 	params.imageSize = (h - params.imageSepFac*params.imageBorderWidth - params.buttonHeight - 2.*params.buttonMargin)/params.nImageHeight; //including border
@@ -93,13 +95,11 @@ function populateField(){
 		.on('mousedown', function(d){
 			d.active = true;
 			growImage(d);
-			populateStats(d);
 			d3.event.preventDefault();
 		})
 		.on('touchstart', function(d){
 			d.active = true;
 			growImage(d);
-			populateStats(d);
 			d3.event.preventDefault();
 		})
 
@@ -220,7 +220,10 @@ function growImage(d){
 		.style('width',params.imageGrowSize - params.imageSepFac*params.imageBorderWidth + 'px')
 		.style('margin-top', (params.imageSize - params.imageGrowSize)/2. + 'px')
 		.style('margin-left', (params.imageSize - params.imageGrowSize)/2. + 'px')
-		.style('box-shadow', '10px 10px 10px black');
+		.style('box-shadow', '10px 10px 10px rgb(20,20,20)')
+		.on('end', function(){
+			populateStats(d);
+		})
 
 	d3.select('#'+getImageID(d)).select('img').transition().duration(200)
 		.attr('height',params.imageGrowSize - params.imageSepFac*params.imageBorderWidth + 'px')
@@ -394,44 +397,60 @@ function finishImageMoves(){
 //for the Zooniverse stats
 function makeStatsPlot(id, clipID, value, radius, strokeWidth, offsetX, colorMap){
 	var div = d3.select('#'+id);
-	var height = parseFloat(div.style('height'));
+	var height = parseFloat(div.style('height')) + params.imageBorderWidth*2.;
 	var width = parseFloat(div.style('width'));
 	var left = parseFloat(div.style('left'));
 	var top = parseFloat(div.style('top'));
 
+	var sWidth = params.imageBorderWidth;
+
 	var svg = div.append("svg")
-		.style('width', 2*radius + 'px')
-		.style('height', params.imageGrowSize + 'px')
+		.style('width', 2*radius + 2*sWidth + 'px')
+		.style('height', height + 'px')
 		.style('position', 'absolute')
-		.style('top',0 + 'px')
+		.style('top',-params.imageBorderWidth + 'px') 
 		.style('left',offsetX + 'px')
+		.style('transform','scaleY(-1)')
 
-	data = []
-	for(var i=0; i<value; i++){
-		data.push(i)
-	}
-	data.push(i)
-	//console.log(data)
-	svg.selectAll('circle').data(data).enter()
-		.append('circle')
-			.attr('cx', radius)
-			.attr('cy', function(d){return params.imageGrowSize - (2.5*radius*d) - 2.5/2.*radius})
-			.attr('r', radius)
-			.attr('stroke', 'black')
-			.attr('stroke-width', strokeWidth)
-			.attr('fill', function(d){return colorMap(d/10.)});
+	var hRect = Math.max(height*value/10. - sWidth, 0)//shouldn't this be -2*sWidth?
+	svg.append('rect')
+		.attr("width", 2*radius +'px')
+		.attr("height", '0px') 
+		.attr("x", sWidth+'px')
+		.attr("y", sWidth*0.5+'px')  //don't get it!
+		.attr('fill',colorMap(value/10.))
+		.attr('stroke',params.unknownColor)
+		.attr('stroke-width',sWidth+'px')
+		.transition().duration(500)
+			.attr("height", hRect + 'px') 
 
-	var clipPath = svg.append('defs').append("clipPath")
-		.attr("id",clipID)
-		.append('rect')
-			.attr("width", 10*radius+'px')
-			.attr("height", 2.5*radius*value)
-			.attr("x", 0)
-			.attr("y", params.imageGrowSize )
-	d3.select('#'+clipID).selectAll('rect').transition().duration(1000)
-		.attr("y", params.imageGrowSize*(1.-value/10.))
+	//for circles
+	// data = []
+	// for(var i=0; i<value; i++){
+	// 	data.push(i)
+	// }
+	// data.push(i)
+	// //console.log(data)
+	// svg.selectAll('circle').data(data).enter()
+	// 	.append('circle')
+	// 		.attr('cx', radius)
+	// 		.attr('cy', function(d){return params.imageGrowSize - (2.5*radius*d) - 2.5/2.*radius})
+	// 		.attr('r', radius)
+	// 		.attr('stroke', 'black')
+	// 		.attr('stroke-width', strokeWidth)
+	// 		.attr('fill', function(d){return colorMap(d/10.)});
 
-	svg.attr('clip-path', 'url(#'+clipID+')');
+	// var clipPath = svg.append('defs').append("clipPath")
+	// 	.attr("id",clipID)
+	// 	.append('rect')
+	// 		.attr("width", 10*radius+'px')
+	// 		.attr("height", 2.5*radius*value)
+	// 		.attr("x", 0)
+	// 		.attr("y", params.imageGrowSize )
+	// d3.select('#'+clipID).selectAll('rect').transition().duration(1000)
+	// 	.attr("y", params.imageGrowSize*(1.-value/10.))
+
+	// svg.attr('clip-path', 'url(#'+clipID+')');
 }
 function populateStats(img){
 
@@ -441,8 +460,9 @@ function populateStats(img){
 	var smooth = 10*img['t01_smooth_or_features_a01_smooth_debiased'];
 	console.log("spiral, smooth", spiral, smooth)
 
-	makeStatsPlot(getImageID(img), getImageID(img)+'SpiralClip', spiral, radius, 1, -2.*radius - params.imageBorderWidth, params.spiralColorMap)
-	makeStatsPlot(getImageID(img), getImageID(img)+'SmoothClip', smooth, radius, 1, params.imageGrowSize, params.smoothColorMap)
+	//I don't understand these offsets! but it looks correct in the browser
+	makeStatsPlot(getImageID(img), getImageID(img)+'SpiralClip', spiral, radius, 1, -2.*radius - 2.5*params.imageBorderWidth, params.spiralColorMap)
+	makeStatsPlot(getImageID(img), getImageID(img)+'SmoothClip', smooth, radius, 1, params.imageGrowSize - 2*params.imageBorderWidth, params.smoothColorMap)
 
 	d3.select('#'+getImageID(img)).on('mouseup',function(){shrinkImage(img)});
 
@@ -474,7 +494,35 @@ function setColorMaps(){
 
 	}
 
-
+//splash screens (for instructions and training)
+function createInstructionsSplash(){
+	d3.select('body').append('div')
+		.attr('id','instructions')
+		.attr('class','splash')
+		.style('line-height',params.windowHeight + 'px')
+		.style('text-align', 'center')
+		.style('font-size','48px')
+		.style('cursor','pointer')
+		.on('click',function(){
+			showInstructionsSplash(false)	
+		})
+		.text('Instructions')
+}
+function showInstructionsSplash(show){
+	var op = 0;
+	if (show){
+		op = 0.99
+		d3.select('#instructions').classed('hidden', false)
+	}
+	d3.select('#instructions').transition().duration(500)
+		.style('background-color','rgba(50, 50, 50,'+op+')')
+		.style('opacity',op)
+		.on('end',function(){
+			if (!show){
+				d3.select('#instructions').classed('hidden', true);
+			}
+		})
+}
 /**
  * Randomly shuffle an array
  * https://stackoverflow.com/a/2450976/1293256
@@ -508,6 +556,7 @@ function reset(){
 	populateField();
 }
 function init(){
+	createInstructionsSplash();
 	setColorMaps();
 	formatBucketText();
 	populateField();

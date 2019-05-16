@@ -43,9 +43,9 @@ function defineParams(){
 		this.doneTraining = 0;
 		this.modelCheckInterval = 1000; //ms between checks of finished model
 		//improve this
-		this.unknownColor = "gray"
-		this.smoothColor = "red";
-		this.spiralColor = "blue";
+		this.unknownColor = 'black'//getComputedStyle(document.documentElement).getPropertyValue('--background-color');
+		this.smoothColor = d3.rgb(220,20,60);
+		this.spiralColor = d3.rgb(51,153,255);
 	}
 }
 defineParams();
