@@ -68,6 +68,7 @@ function defineMLParams(){
 		this.modelBusy = false;
 		this.modelUpdateNeeded = true;
 		this.doneTraining = 0;
+		this.nClassified = 0;
 		this.modelCheckInterval = 1000; //ms between checks of finished model
 		//improve this
 

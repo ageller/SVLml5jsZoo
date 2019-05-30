@@ -8,10 +8,10 @@ import numpy as np
 import json
 
 #read in the data here?
-with open('data/GZ2data.json', 'r') as json_file:  
+with open('static/data/GZ2data.json', 'r') as json_file:  
     data_json = json.load(json_file)
 
-print(data_json)
+#print(data_json)
 
 app = Flask(__name__)
 
@@ -42,13 +42,14 @@ def background_thread():
 	while True:
 		socketio.sleep(seconds)
 		if (updateViewerParams):
-			print("========= viewerParams:",viewerParams)
+			print("========= viewerParams:",viewerParams.keys())
 			socketio.emit('update_viewerParams', viewerParams, namespace='/test')
 		if (updateMLParams):
-			print("========= MLParams:",MLParams)
+			print("========= MLParams:",MLParams.keys())
 			socketio.emit('update_MLParams', MLParams, namespace='/test')
 		updateViewerParams = False
-
+		updateMLParams = False
+		
 #testing the connection
 @socketio.on('connection_test', namespace='/test')
 def connection_test(message):

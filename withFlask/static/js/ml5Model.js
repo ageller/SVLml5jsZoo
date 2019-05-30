@@ -29,7 +29,7 @@ function trainOnImages(imgList, index, id, interval=10){
 				console.log(dImage, id)
 				//https://github.com/ml5js/ml5-examples/issues/59
 				var img = new Image(); //NOTE: currently p5 images don't work in classifier
-				img.src = 'data/'+dImage.image;
+				img.src = '/static/data/'+dImage.image;
 				var imgCheck = setInterval(function(){ //wait until the image is loaded
 					if (img.complete) {
 						clearInterval(imgCheck)
@@ -84,26 +84,20 @@ function whileTraining(lossValue) {
 }
 
 //classify
-function classify(d, i) {
+function classify(d) {
 	console.log('classifying', d.image)
 	var img = new Image(); //NOTE: currently p5 images don't work in classifier
-	img.src = 'data/'+d.image;
+	img.src = '/static/data/'+d.image;
 	var imgCheck = setInterval(function(){ //wait until the image is loaded
 		if (img.complete) {
 			clearInterval(imgCheck)
-			console.log('img loaded...')
 			MLParams.classifier.classify(img, function(err, results){
 				//save the results
 
 				if (results && results[0]) {
 					d.results0 = results[0];
 				}
-				console.log(i, MLParams.objDataShown.length)
-				if (i >= MLParams.objDataShown.length){
-					MLParams.modelBusy = false;
-					MLParams.modelUpdateNeeded = false;
-					sendToViewer();
-				}
+				MLParams.nClassified += 1;
 			});
 		}
 	},10);
@@ -114,6 +108,7 @@ function runModel(){
 	MLParams.modelReady = false;
 	MLParams.modelBusy = true;
 	MLParams.doneTraining = 0;
+	MLParams.nClassified = 0;
 	initializeML();
 	var check = setInterval(function(){ //wait until the model is ready
 		if (MLParams.modelReady) {
@@ -122,14 +117,24 @@ function runModel(){
 			var check2 = setInterval(function(){ //wait training is finished
 				if (MLParams.doneTraining == 3){
 					clearInterval(check2);
-					showSplash('training', false)
 					MLParams.objDataShown.forEach(function(d, i){
-						classify(d, i);
+						classify(d);
 					})
 				}
 			},10);
 		}
 	},10);
+
+	var checkML = setInterval(function(){
+		//console.log(MLParams.nClassified, MLParams.objDataShown.length);
+		if (MLParams.nClassified >= MLParams.objDataShown.length){
+			clearInterval(checkML);
+			MLParams.modelBusy = false;
+			MLParams.modelUpdateNeeded = false;
+			console.log("done.")
+			sendToViewer();
+		}
+	}, 10);
 }
 
 ///////////////////////////
@@ -139,27 +144,27 @@ function setMLParams(vars){
 	var keys = Object.keys(vars);
 	//var keys = ['objDataShown', 'spiralImages', 'smoothImages']
 	keys.forEach(function(k, i){
-		MLparams[k] = parseFloat(vars[k])
-		if (i == length(keys)){
+		MLParams[k] = vars[k]
+		if (i == keys.length-1){
 			//run the ML model
 			runModel();
 		}
 	});
-	console.log('have params for ML', MLparams)
+	console.log('have params for ML', MLParams)
 
 
 }
 
 function sendToViewer(){
-	socketParams.socket.emit('ml_input',{
-			'objDataShown':viewerParams.objDataShown,
+	socketParams.socket.emit('viewer_input',{
+			'objDataShown':MLParams.objDataShown,
 		});
 
 }
 
 //https://blog.miguelgrinberg.com/post/easy-websockets-with-flask-and-gevent
 //https://github.com/miguelgrinberg/Flask-SocketIO
-function connectSocketInput(){
+function connectSocket(){
 	//$(document).ready(function() {
 	document.addEventListener("DOMContentLoaded", function(event) { 
 		// Event handler for new connections.
