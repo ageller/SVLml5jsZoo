@@ -94,6 +94,20 @@ function populateField(){
 	})
 }
 
+function attachImageEvents(d){
+	d3.select('#'+getImageID(d))
+		.on('mousedown', function(){
+			d.active = true;
+			growImage(d);
+			d3.event.preventDefault();
+		})
+		.on('touchstart', function(){
+			d.active = true;
+			growImage(d);
+			d3.event.preventDefault();
+		})
+
+}
 function addImageToField(d){
 	var div = viewerParams.fieldDiv
 		.append('div')
@@ -108,16 +122,6 @@ function addImageToField(d){
 		.style('left',d.left + 'px')
 		.style('top',d.top + 'px')
 		.style('z-index',1)
-		.on('mousedown', function(){
-			d.active = true;
-			growImage(d);
-			d3.event.preventDefault();
-		})
-		.on('touchstart', function(){
-			d.active = true;
-			growImage(d);
-			d3.event.preventDefault();
-		})
 
 	div.append('img')
 		.attr('src','/static/data/'+d.image)
@@ -143,6 +147,8 @@ function addImageToField(d){
 		.style('position','absolute')
 		.style('text-align','left')
 		.style('color',getComputedStyle(document.documentElement).getPropertyValue('--background-color'))
+
+	attachImageEvents(d);
 
 	// svg.selectAll('circle').data(data).enter()
 	// .append('circle')
@@ -845,10 +851,9 @@ function setViewerParams(vars){
 		vars[k].forEach(function(d, j){
 			viewerParams[k].push(d)
 			if (i == keys.length-1 && j == vars[k].length-1){
-				//update the viewer (when using sockets, I think I need to replace all the images so that I can reattach the events)
-				d3.selectAll('#fieldDiv').selectAll('div').remove();
+				//update the viewer (when using sockets, I need to reattach the events)
 				viewerParams.objDataShown.forEach(function(dd, jj){
-					addImageToField(dd)
+					attachImageEvents(dd);
 					if (jj == viewerParams.objDataShown.length -1){
 						showSplash('training', false)
 						showMLResults();
