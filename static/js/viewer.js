@@ -329,8 +329,8 @@ function growImage(d){
 	d3.select('#'+getImageID(d)).transition().duration(200)
 		.style('height',viewerParams.imageGrowSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
 		.style('width',viewerParams.imageGrowSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
-		.style('margin-top', (viewerParams.imageSize - viewerParams.imageGrowSize)/2. + 'px')
-		.style('margin-left', (viewerParams.imageSize - viewerParams.imageGrowSize)/2. + 'px')
+		.style('margin-top', (viewerParams.imageSize - viewerParams.imageGrowSize) + 'px')
+		.style('margin-left', (viewerParams.imageSize - viewerParams.imageGrowSize) + 'px')
 		.style('box-shadow', '10px 10px 10px rgb(20,20,20)')
 		.on('end', function(){
 			populateStats(d);
