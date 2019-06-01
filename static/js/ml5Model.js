@@ -144,11 +144,14 @@ function setMLParams(vars){
 	var keys = Object.keys(vars);
 	//var keys = ['objDataShown', 'spiralImages', 'smoothImages']
 	keys.forEach(function(k, i){
-		MLParams[k] = vars[k]
-		if (i == keys.length-1){
-			//run the ML model
-			runModel();
-		}
+		MLParams[k] = []
+		vars[k].forEach(function(d, j){
+			MLParams[k].push(d)
+			if (i == keys.length-1 && j == vars[k].length-1){
+				//run the ML model
+				runModel();
+			}
+		})
 	});
 	console.log('have params for ML', MLParams)
 

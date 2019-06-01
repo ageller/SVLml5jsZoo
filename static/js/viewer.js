@@ -66,6 +66,7 @@ function populateField(){
 			d.left = left + xOffset;
 			d.top = top + yOffset;
 			d.active = false;
+			d.color = viewerParams.unknownColor;
 			d.dragImageSamples = [];
 			viewerParams.objDataShown.push(d);
 
@@ -100,7 +101,7 @@ function addImageToField(d){
 		.attr('id',getImageID(d))
 		.style('border-style','solid')
 		.style('border-width',viewerParams.imageBorderWidth + 'px')
-		.style('border-color',viewerParams.unknownColor)
+		.style('border-color',d.color)
 		.style('width', viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px') 
 		.style('height',viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
 		.style('position','absolute')
@@ -135,6 +136,14 @@ function addImageToField(d){
 		.style('font-size', viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
 		.style('text-align','center')
 		.style('color',getComputedStyle(document.documentElement).getPropertyValue('--background-color'))
+
+
+	div.append('div')
+		.attr('id', 'infoBox')
+		.style('position','absolute')
+		.style('text-align','left')
+		.style('color',getComputedStyle(document.documentElement).getPropertyValue('--background-color'))
+
 	// svg.selectAll('circle').data(data).enter()
 	// .append('circle')
 	// 	.attr('cx', function(d){return 2.5*radius*d + offsetX})
@@ -324,6 +333,12 @@ function getImageID(d){
 function growImage(d){
 	var top = d3.select('#'+getImageID(d)).style('top')
 	var left = d3.select('#'+getImageID(d)).style('left')
+	var s1 = viewerParams.imageGrowSize/30.;
+	var s2 = viewerParams.imageGrowSize/25.;
+	var bC = d.color;
+	if (bC == viewerParams.unknownColor){		
+		bC = 'gray';//getComputedStyle(document.documentElement).getPropertyValue('--background-color')
+	}
 	d3.select('#'+getImageID(d))
 		.style('z-index',10)
 	d3.select('#'+getImageID(d)).transition().duration(200)
@@ -331,7 +346,8 @@ function growImage(d){
 		.style('width',viewerParams.imageGrowSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
 		.style('margin-top', (viewerParams.imageSize - viewerParams.imageGrowSize) + 'px')
 		.style('margin-left', (viewerParams.imageSize - viewerParams.imageGrowSize) + 'px')
-		.style('box-shadow', '10px 10px 10px rgb(20,20,20)')
+		.style('border-color',bC)
+		.style('box-shadow', s1 + 'px ' + s1 + 'px ' + s2 + 'px ' + s2 + 'px rgb(20,20,20)')
 		.on('end', function(){
 			populateStats(d);
 		})
@@ -343,15 +359,24 @@ function growImage(d){
 }
 function shrinkImage(d){
 	//for some reason, the transitions don't work for the outer div here?
+	var s1 = viewerParams.imageSize/20.;
+	var s2 = viewerParams.imageSize/10.;
+	var bC = d.color;
+	if (bC == viewerParams.unknownColor) bC = 'gray';
 	d3.select('#'+getImageID(d))//.transition().duration(200)
 		.style('height',viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
 		.style('width',viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
 		.style('margin-top', '0px')
 		.style('margin-left', '0px')
-		.style('box-shadow', 'none');
+		.style('border-width',viewerParams.imageBorderWidth + 'px')
+		.style('border-color',bC)
+		//.style('box-shadow', 'none')
+		.style('box-shadow', s1 + 'px ' + s1 + 'px ' + s2 + 'px ' + s2 + 'px rgb(20,20,20)')
+
 	d3.select('#'+getImageID(d)).select('img')//.transition().duration(200)
 		.attr('height',viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
 		.attr('width',viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
+	d3.select('#'+getImageID(d)).select('#infoBox').html('')
 	d3.select('#'+getImageID(d)).selectAll('svg').remove()
 }
 function handleImageMoves(){
@@ -500,10 +525,13 @@ function replaceImageInField(d){
 	dd.left = d.left;
 	dd.top = minTop - viewerParams.imageSize;
 	dd.active = false;
+	dd.color = d.color;
 	dd.dragImageSamples = [];
 	viewerParams.objDataShown.push(dd);
 	sameRow.push(dd);
 	addImageToField(dd);
+
+	dd.top += viewerParams.imageSize; //reset this here so that it is consistent with style later
 
 	//move the images in that row
 	sameRow.forEach(function(dd,i){
@@ -511,9 +539,6 @@ function replaceImageInField(d){
 		var top = parseFloat(x.style('top'));
 		x.transition().ease(d3.easeBounceOut).duration(400)
 			.style('top',top+viewerParams.imageSize + 'px')
-			.on('end', function(){
-
-			})
 	});
 }
 function finishImageMoves(){
@@ -542,8 +567,9 @@ function finishImageMoves(){
 /////////////////////
 //for the Zooniverse stats
 function makeStatsPlot(id, clipID, value, radius, strokeWidth, offsetX, colorMap){
+	var bW = parseFloat(d3.select('#'+id).style('border-width'))
 	var div = d3.select('#'+id);
-	var height = parseFloat(div.style('height')) + viewerParams.imageBorderWidth*2.;
+	var height = parseFloat(div.style('height')) + 2.*bW; 
 	var width = parseFloat(div.style('width'));
 	var left = parseFloat(div.style('left'));
 	var top = parseFloat(div.style('top'));
@@ -554,7 +580,7 @@ function makeStatsPlot(id, clipID, value, radius, strokeWidth, offsetX, colorMap
 		.style('width', 2*radius + 2*sWidth + 'px')
 		.style('height', height + 'px')
 		.style('position', 'absolute')
-		.style('top',-viewerParams.imageBorderWidth + 'px') 
+		.style('top',-bW + 'px') 
 		.style('left',offsetX + 'px')
 		.style('transform','scaleY(-1)')
 
@@ -598,16 +624,36 @@ function makeStatsPlot(id, clipID, value, radius, strokeWidth, offsetX, colorMap
 
 	// svg.attr('clip-path', 'url(#'+clipID+')');
 }
+//for galaxy information
+function showGalaxyInfo(img){
+	var dd = d3.select('#'+getImageID(img))
+
+	dd.select('#infoBox')
+		.style('font-size',viewerParams.imageGrowSize/20. + 'px')
+		.style('line-height',viewerParams.imageGrowSize/15. + 'px')
+		.html('RA : ' + img.rastring +'<br/> Dec : ' + img.decstring)
+
+	var w = parseFloat(dd.select('#infoBox').node().getBoundingClientRect().width);
+	var h = parseFloat(dd.select('#infoBox').node().getBoundingClientRect().height);
+	dd.select('#infoBox')
+		.style('left','2px')
+		.style('top',viewerParams.imageGrowSize - viewerParams.imageBorderWidth - h - 6  + 'px');//why do I need the extra offset here??
+}
 function populateStats(img){
 
 	var radius = (viewerParams.imageGrowSize/10.)/2.5;
 
 	var spiral = 10*img['t04_spiral_a08_spiral_debiased'];
 	var smooth = 10*img['t01_smooth_or_features_a01_smooth_debiased'];
-	console.log("spiral, smooth", spiral, smooth)
+	console.log("spiral, smooth", spiral, smooth, img)
+	
+	showGalaxyInfo(img);
 
-	makeStatsPlot(getImageID(img), getImageID(img)+'SpiralClip', spiral, radius, 1, -2.*radius - viewerParams.imageBorderWidth, viewerParams.spiralColorMap)
-	makeStatsPlot(getImageID(img), getImageID(img)+'SmoothClip', smooth, radius, 1, viewerParams.imageGrowSize - 1.5*viewerParams.imageBorderWidth, viewerParams.smoothColorMap)
+	var bW = parseFloat(d3.select('#'+getImageID(img)).style('border-width'))
+
+	//I don't understand the x offset!
+	makeStatsPlot(getImageID(img), getImageID(img)+'SpiralClip', spiral, radius, 1, -2*radius - 1.1*bW, viewerParams.spiralColorMap)
+	makeStatsPlot(getImageID(img), getImageID(img)+'SmoothClip', smooth, radius, 1, viewerParams.imageGrowSize - 1.5*bW, viewerParams.smoothColorMap)
 
 	d3.select('#'+getImageID(img)).on('mouseup',function(){shrinkImage(img)});
 
@@ -628,9 +674,9 @@ function showMLResults(){
 		}
 		if (d.results0) {
 			
-			var cColor = viewerParams.unknownColor;
+			d.color = viewerParams.unknownColor;
 			if (d.results0.label == "spiral"){
-				cColor = viewerParams.spiralColorMap(d.results0.confidence);
+				d.color = viewerParams.spiralColorMap(d.results0.confidence);
 				if (spiral > smooth){
 					d.agree = true;
 					viewerParams.nSpiralAgree += 1;
@@ -639,7 +685,7 @@ function showMLResults(){
 				}
 			}
 			if (d.results0.label == "smooth"){
-				cColor = viewerParams.smoothColorMap(d.results0.confidence);
+				d.color = viewerParams.smoothColorMap(d.results0.confidence);
 				if (smooth > spiral){
 					d.agree = true;
 					viewerParams.nSmoothAgree += 1;
@@ -648,7 +694,7 @@ function showMLResults(){
 				}
 			}
 			d3.select('#'+getImageID(d)).transition().duration(1000)
-				.style('border-color',cColor)
+				.style('border-color',d.color)
 				.on('end', function(){
 					if (d.agree){
 						d3.select('#'+getImageID(d)).select('#textBox').text('')
@@ -656,7 +702,7 @@ function showMLResults(){
 						d3.select('#'+getImageID(d)).select('#textBox').text('X')
 					}
 				})
-			console.log("img, results[0]", d.image, spiral, smooth, d.results0, d.agree)
+			console.log("img, results[0]", d.image, spiral, smooth, d.results0, d.agree, d.color, d)
 
 
 		}
@@ -794,14 +840,27 @@ function init(){
 function setViewerParams(vars){
 	var keys = Object.keys(vars);
 	//var keys = ['objDataShown']
-	keys.forEach(function(k){
-		viewerParams[k] = vars[k]
+	keys.forEach(function(k,i){
+		viewerParams[k] = [];
+		vars[k].forEach(function(d, j){
+			viewerParams[k].push(d)
+			if (i == keys.length-1 && j == vars[k].length-1){
+				//update the viewer (when using sockets, I think I need to replace all the images so that I can reattach the events)
+				d3.selectAll('#fieldDiv').selectAll('div').remove();
+				viewerParams.objDataShown.forEach(function(dd, jj){
+					addImageToField(dd)
+					if (jj == viewerParams.objDataShown.length -1){
+						showSplash('training', false)
+						showMLResults();
+					}
+				})
+	
+			}
+		});
 	});
 	console.log('have params for viewer', viewerParams.objDataShown)
 
-	//update the viewer
-	showSplash('training', false)
-	showMLResults();
+
 }
 
 function sendToML(){

@@ -74,8 +74,8 @@ html, body {
 	box-shadow: 10px 0px #999;
 }
 .buttonDiv:active {
-  box-shadow: 5px 0px #666;
-  transform: translateX(4px);
+  box-shadow: 4px 0px #666;
+  transform: translateX(6px);
 }
 /*.buttonDiv:hover {
 	background-color: var(--button-foreground-color);
