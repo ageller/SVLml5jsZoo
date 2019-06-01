@@ -156,9 +156,12 @@ function setMLParams(vars){
 }
 
 function sendToViewer(){
-	socketParams.socket.emit('viewer_input',{
-			'objDataShown':MLParams.objDataShown,
-		});
+	var viewer_input = {'objDataShown':MLParams.objDataShown}
+	if (MLParams.usingSocket){
+		socketParams.socket.emit('viewer_input',viewer_input);
+	} else {
+		setViewerParams(viewer_input);
+	}
 
 }
 

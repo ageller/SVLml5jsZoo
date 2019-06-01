@@ -45,7 +45,14 @@ function defineViewerParams(){
 		this.smoothColor = d3.rgb(220,20,60);
 		this.spiralColor = d3.rgb(51,153,255);
 
+		//check if we're using web sockets
+		this.usingSocket = true;
 
+		//check for agreement with Zooniverse volunteers
+		this.nSmooth = 0.;
+		this.sSpiral = 0.;
+		this.nSmoothAgree = 0.;
+		this.sSpiralAgree = 0.;
 	}
 }
 
@@ -70,8 +77,9 @@ function defineMLParams(){
 		this.doneTraining = 0;
 		this.nClassified = 0;
 		this.modelCheckInterval = 1000; //ms between checks of finished model
-		//improve this
 
+		//check if we're using web sockets
+		this.usingSocket = true;
 
 	}
 }
@@ -96,6 +104,3 @@ function defineSocketParams(){
 	}
 }
 
-defineViewerParams();
-defineMLParams();
-defineSocketParams();

@@ -476,9 +476,18 @@ function populateStats(img){
 }
 
 function showMLResults(){
-	viewerParams.objDataShown.forEach(function(d){
+	viewerParams.nSpiralAgree = 0.;
+	viewerParams.nSmoothAgree = 0.;
+	viewerParams.nSpiral = 0.;
+	viewerParams.nSmooth = 0.;
+	viewerParams.objDataShown.forEach(function(d,i){
 		var spiral = 10*d['t04_spiral_a08_spiral_debiased'];
 		var smooth = 10*d['t01_smooth_or_features_a01_smooth_debiased'];
+		if (spiral > smooth){
+			viewerParams.nSpiral += 1.;
+		} else {
+			viewerParams.nSmooth += 1.;
+		}
 		if (d.results0) {
 			
 			var cColor = viewerParams.unknownColor;
@@ -486,6 +495,7 @@ function showMLResults(){
 				cColor = viewerParams.spiralColorMap(d.results0.confidence);
 				if (spiral > smooth){
 					d.agree = true;
+					viewerParams.nSpiralAgree += 1;
 				} else {
 					d.agree = false;
 				}
@@ -494,6 +504,7 @@ function showMLResults(){
 				cColor = viewerParams.smoothColorMap(d.results0.confidence);
 				if (smooth > spiral){
 					d.agree = true;
+					viewerParams.nSmoothAgree += 1;
 				} else {
 					d.agree = false;
 				}
@@ -508,6 +519,14 @@ function showMLResults(){
 					}
 				})
 			console.log("img, results[0]", d.image, spiral, smooth, d.results0, d.agree)
+
+
+		}
+		if (i == viewerParams.objDataShown.length-1){
+			//show the percent agreement (will have some way to display on screen later)
+			//NOTE: I think this will also include the training set (but is that a problem?)
+			console.log('Spiral agreement : ', viewerParams.nSpiral, viewerParams.nSpiralAgree, viewerParams.nSpiralAgree/viewerParams.nSpiral)
+			console.log('Smooth agreement : ', viewerParams.nSmooth, viewerParams.nSmoothAgree, viewerParams.nSmoothAgree/viewerParams.nSmooth)
 
 		}
 	});
@@ -641,11 +660,16 @@ function setViewerParams(vars){
 
 function sendToML(){
 	showSplash('training', true)
-	socketParams.socket.emit('ml_input',{
-			'objDataShown':viewerParams.objDataShown,
-			'spiralImages':viewerParams.spiralImages,
-			'smoothImages':viewerParams.smoothImages
-		});
+	var ml_input = {
+				'objDataShown':viewerParams.objDataShown,
+				'spiralImages':viewerParams.spiralImages,
+				'smoothImages':viewerParams.smoothImages
+				};
+	if (viewerParams.usingSocket){
+		socketParams.socket.emit('ml_input',ml_input);
+	} else {
+		setMLParams(ml_input);
+	}
 
 }
 
@@ -683,6 +707,18 @@ function connectSocket(){
 	});
 }
 
+//so that it can run locally also without using Flask
+function runLocal(){
+	viewerParams.usingSocket = false;
+	MLParams.usingSocket = false;
+
+	//read in the data
+	d3.json('static/data/GZ2data.json')
+		.then(function(data) {
+			viewerParams.objData = shuffle(data);
+			init();
+		});
+}
 
 ///////////////////////////
 // runs on load

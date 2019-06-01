@@ -16,10 +16,12 @@
 <body>
 
 	<script src="/static/js/params.js"></script>
-	<script src="/static/js/viewer.js"></script>
+	<script src="/static/js/ml5Model.js"></script>
 
 	<script>
 		//called upon loading
+		defineMLParams();
+		defineSocketParams();
 		connectSocket();
 	</script>
 </body>
