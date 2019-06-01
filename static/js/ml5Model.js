@@ -93,9 +93,11 @@ function classify(d) {
 			clearInterval(imgCheck)
 			MLParams.classifier.classify(img, function(err, results){
 				//save the results
-
+				d.results = []
 				if (results && results[0]) {
-					d.results0 = results[0];
+					results.forEach(function(x){
+						d.results.push(x)
+					})
 				}
 				MLParams.nClassified += 1;
 			});

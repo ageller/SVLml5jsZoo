@@ -632,12 +632,32 @@ function makeStatsPlot(id, clipID, value, radius, strokeWidth, offsetX, colorMap
 }
 //for galaxy information
 function showGalaxyInfo(img){
+
 	var dd = d3.select('#'+getImageID(img))
+
+	var infoStr = 'RA : ' + img.rastring +
+				'<br/> Dec : ' + img.decstring +
+				'<br/> <div id="zooName" style="display:inline-block">Zooniverse</div> : '+
+				Math.round(100*img['t04_spiral_a08_spiral_debiased']) + '% spiral / ' +
+				Math.round(100*img['t01_smooth_or_features_a01_smooth_debiased']) + '% smooth'
 
 	dd.select('#infoBox')
 		.style('font-size',viewerParams.imageGrowSize/20. + 'px')
 		.style('line-height',viewerParams.imageGrowSize/15. + 'px')
-		.html('RA : ' + img.rastring +'<br/> Dec : ' + img.decstring)
+		.html(infoStr)
+
+	if (img.hasOwnProperty('results')){
+		var w = parseFloat(dd.select('#zooName').node().getBoundingClientRect().width);
+		var MLsmooth = 0;
+		var MLspiral = 0;
+		img.results.forEach(function(x){
+			if (x.label == 'spiral') MLspiral = Math.round(100.*x.confidence);
+			if (x.label == 'smooth') MLsmooth = Math.round(100.*x.confidence);
+		})
+		infoStr += '<br/> <div style="display:inline-block; width:'+w+'px">Computer</div> : ' + 
+			MLspiral + '% spiral / ' + MLsmooth + '% smooth'
+		dd.select('#infoBox').html(infoStr)
+	}
 
 	var w = parseFloat(dd.select('#infoBox').node().getBoundingClientRect().width);
 	var h = parseFloat(dd.select('#infoBox').node().getBoundingClientRect().height);
@@ -678,11 +698,12 @@ function showMLResults(){
 		} else {
 			viewerParams.nSmooth += 1.;
 		}
-		if (d.results0) {
+		console.log(d.results)
+		if (d.results && d.results[0]) {
 			
 			d.color = viewerParams.unknownColor;
-			if (d.results0.label == "spiral"){
-				d.color = viewerParams.spiralColorMap(d.results0.confidence);
+			if (d.results[0].label == "spiral"){
+				d.color = viewerParams.spiralColorMap(d.results[0].confidence);
 				if (spiral > smooth){
 					d.agree = true;
 					viewerParams.nSpiralAgree += 1;
@@ -690,8 +711,8 @@ function showMLResults(){
 					d.agree = false;
 				}
 			}
-			if (d.results0.label == "smooth"){
-				d.color = viewerParams.smoothColorMap(d.results0.confidence);
+			if (d.results[0].label == "smooth"){
+				d.color = viewerParams.smoothColorMap(d.results[0].confidence);
 				if (smooth > spiral){
 					d.agree = true;
 					viewerParams.nSmoothAgree += 1;
@@ -708,7 +729,7 @@ function showMLResults(){
 						d3.select('#'+getImageID(d)).select('#textBox').text('X')
 					}
 				})
-			console.log("img, results[0]", d.image, spiral, smooth, d.results0, d.agree, d.color, d)
+			console.log("img, results[0]", d.image, spiral, smooth, d.results[0], d.agree, d.color, d)
 
 
 		}
