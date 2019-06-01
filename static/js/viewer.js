@@ -208,22 +208,13 @@ function createCounters(){
 		.style('text-align','center')
 		.text('# spiral images in model')
 
-	var w = parseFloat(d3.select('#spiralCounter').node().getBoundingClientRect().width);
-	var h = parseFloat(d3.select('#spiralCounter').node().getBoundingClientRect().height);
-	d3.select('#spiralCounter')
-		.style('width',w + 'px')
-		.style('left',viewerParams.imageGridLeft - viewerParams.buttonMargin + 'px')  
-		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
 
 	var smoothCounter = d3.select('body').append('div')
 		.attr('id','smoothCounter')
 		.attr('class', 'buttonDiv')
 		.style('height', viewerParams.buttonHeight + 'px')
-		.style('width',w + 'px')
 		.style('position','absolute')
 		.style('margin',viewerParams.buttonMargin + 'px')
-		.style('left',viewerParams.imageGridWidth + viewerParams.imageGridLeft - w - 2.*viewerParams.buttonMargin -2 + 'px')  //where's the extra 2 coming from? 
-		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
 
 	smoothCounter.append('div')
 		.style('font-size', viewerParams.buttonHeight*0.75 + 'px')
@@ -236,6 +227,27 @@ function createCounters(){
 		.style('line-height', viewerParams.buttonHeight*0.25 + 'px')
 		.style('text-align','center')
 		.text('# smooth images in model')
+
+
+	var w = parseFloat(d3.select('#spiralCounter').node().getBoundingClientRect().width);
+	var h = parseFloat(d3.select('#spiralCounter').node().getBoundingClientRect().height);
+	d3.select('#spiralCounter')
+		.style('width',w + 'px')
+		.style('left',viewerParams.imageGridLeft - viewerParams.buttonMargin + 'px')  
+		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
+
+	w = parseFloat(d3.select('#smoothCounter').node().getBoundingClientRect().width);
+	h = parseFloat(d3.select('#smoothCounter').node().getBoundingClientRect().height);
+
+	var maxLeft = 0.;
+	viewerParams.objDataShown.forEach(function(d){
+		maxLeft = Math.max(maxLeft, d.left);
+	})
+	d3.select('#smoothCounter')
+		.style('width',w + 'px')
+		.style('left',maxLeft+viewerParams.imageSize - w - viewerParams.buttonMargin -12 + 'px')  //2x4 for border, 2x2 for padding
+		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
+
 
 
 }
