@@ -17,6 +17,8 @@ function defineViewerParams(){
 		this.windowHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
 		this.windowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
 
+		this.fieldDiv;
+		
 		this.objIndex = 0;
 		this.useIndex = 0;
 		this.colorMap;

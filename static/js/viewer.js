@@ -38,7 +38,7 @@ function populateField(){
 
 	var w = viewerParams.windowWidth; 
 	var h = viewerParams.windowHeight; 
-	var field = d3.select('body').append('div')
+	viewerParams.fieldDiv = d3.select('body').append('div')
 		.attr('id','fieldDiv')
 		.style('position','absolute')
 		.style('width', w + 'px')
@@ -72,37 +72,56 @@ function populateField(){
 		}
 	})
 
+	viewerParams.nSpiral = 0.;
+	viewerParams.nSmooth = 0.;
+	viewerParams.objDataShown.forEach(function(d,i){
+		var spiral = 10*d['t04_spiral_a08_spiral_debiased'];
+		var smooth = 10*d['t01_smooth_or_features_a01_smooth_debiased'];
+		if (spiral > smooth){
+			viewerParams.nSpiral += 1.;
+		} else {
+			viewerParams.nSmooth += 1.;
+		}
+	});
+
 	console.log('N images available, used', viewerParams.objData.length, viewerParams.objDataShown.length)
+	console.log('N spiral, N smooth', viewerParams.nSpiral, viewerParams.nSmooth)
 	console.log('image size', viewerParams.imageSize)
 
-	var div = field.selectAll('div').data(viewerParams.objDataShown).enter()
+	viewerParams.objDataShown.forEach(function(d){
+		addImageToField(d)
+	})
+}
+
+function addImageToField(d){
+	var div = viewerParams.fieldDiv
 		.append('div')
 		.attr('class','imageField')
-		.attr('id',function(d){return getImageID(d)})
+		.attr('id',getImageID(d))
 		.style('border-style','solid')
 		.style('border-width',viewerParams.imageBorderWidth + 'px')
 		.style('border-color',viewerParams.unknownColor)
 		.style('width', viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px') 
 		.style('height',viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
 		.style('position','absolute')
-		.style('left',function(d,i){return d.left + 'px'})
-		.style('top',function(d,i){return d.top + 'px'})
+		.style('left',d.left + 'px')
+		.style('top',d.top + 'px')
 		.style('z-index',1)
-		.on('mousedown', function(d){
+		.on('mousedown', function(){
 			d.active = true;
 			growImage(d);
 			d3.event.preventDefault();
 		})
-		.on('touchstart', function(d){
+		.on('touchstart', function(){
 			d.active = true;
 			growImage(d);
 			d3.event.preventDefault();
 		})
 
 	div.append('img')
-			.attr('src',function(d){return '/static/data/'+d.image})
-			.attr('width',viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
-			.attr('height',viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
+		.attr('src','/static/data/'+d.image)
+		.attr('width',viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
+		.attr('height',viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
 
 
 	div.append('div')
@@ -372,11 +391,51 @@ function finalMove(d, x0, y0, finalX, finalY, duration){
 							d3.select('#smoothN').text(viewerParams.smoothImages.length)
 						}
 
-					})
+					});
+					replaceImageInField(d);
 			} else {
 				d3.select('#'+getImageID(d)).style('z-index',2)
 			}
+
 		})
+}
+function replaceImageInField(d){
+	//add another image to the group
+	//select images with same left value and top < image
+	var sameRow = [];
+	var minTop = 0.;
+	if (d.top > 0){
+		minTop = viewerParams.windowHeight;
+		viewerParams.objDataShown.forEach(function(dd, i){
+			if (dd.left == d.left && dd.top < d.top){
+				dd.top += viewerParams.imageSize; //reset this here so that it is consistent with style later
+				sameRow.push(dd)
+				var x = d3.select('#'+getImageID(dd))
+				minTop = Math.min(minTop,  parseFloat(x.style('top')))
+			}
+		});
+	}
+
+	//add an image
+	var dd = viewerParams.objData[viewerParams.objDataShown.length]; //I think this is the next one (or else length+1?)
+	dd.left = d.left;
+	dd.top = minTop - viewerParams.imageSize;
+	dd.active = false;
+	dd.dragImageSamples = [];
+	viewerParams.objDataShown.push(dd);
+	sameRow.push(dd);
+	addImageToField(dd);
+
+	//move the images in that row
+	sameRow.forEach(function(dd,i){
+		var x = d3.select('#'+getImageID(dd))
+		var top = parseFloat(x.style('top'));
+		x.transition().ease(d3.easeBounceOut).duration(400)
+			.style('top',top+viewerParams.imageSize + 'px')
+			.on('end', function(){
+
+			})
+	});
 }
 function finishImageMoves(){
 	viewerParams.objDataShown.forEach(function(d){
@@ -514,7 +573,7 @@ function showMLResults(){
 				.on('end', function(){
 					if (d.agree){
 						d3.select('#'+getImageID(d)).select('#textBox').text('')
-					}else{
+					} else{
 						d3.select('#'+getImageID(d)).select('#textBox').text('X')
 					}
 				})
