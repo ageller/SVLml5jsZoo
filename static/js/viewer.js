@@ -244,7 +244,7 @@ function createCounters(){
 		.style('font-size', viewerParams.buttonHeight*0.25 + 'px')
 		.style('line-height', viewerParams.buttonHeight*0.25 + 'px')
 		.style('text-align','center')
-		.text('% spiral agreement')
+		.text('spiral agreement')
 
 
 	var smoothCounter = d3.select('body').append('div')
@@ -284,7 +284,7 @@ function createCounters(){
 		.style('font-size', viewerParams.buttonHeight*0.25 + 'px')
 		.style('line-height', viewerParams.buttonHeight*0.25 + 'px')
 		.style('text-align','center')
-		.text('% smooth agreement')
+		.text('smooth agreement')
 
 	//sizes and positions for the counters
 	var w1 = parseFloat(d3.select('#spiralCounter').node().getBoundingClientRect().width);
@@ -736,8 +736,8 @@ function showMLResults(){
 		if (i == viewerParams.objDataShown.length-1){
 			//show the percent agreement (will have some way to display on screen later)
 			//NOTE: I think this will also include the training set (but is that a problem?)
-			d3.select('#spiralP').html(Math.round(viewerParams.nSpiralAgree/viewerParams.nSpiral*100.))
-			d3.select('#smoothP').html(Math.round(viewerParams.nSmoothAgree/viewerParams.nSmooth*100.))
+			d3.select('#spiralP').html(Math.round(viewerParams.nSpiralAgree/viewerParams.nSpiral*100.)+'%')
+			d3.select('#smoothP').html(Math.round(viewerParams.nSmoothAgree/viewerParams.nSmooth*100.)+'%')
 			console.log('Spiral agreement : ', viewerParams.nSpiral, viewerParams.nSpiralAgree, viewerParams.nSpiralAgree/viewerParams.nSpiral)
 			console.log('Smooth agreement : ', viewerParams.nSmooth, viewerParams.nSmoothAgree, viewerParams.nSmoothAgree/viewerParams.nSmooth)
 
@@ -780,6 +780,7 @@ function createInstructionsSplash(){
 		.style('line-height',viewerParams.windowHeight + 'px')
 		.style('text-align', 'center')
 		.style('font-size','48px')
+		.style('width','100%')
 		.style('cursor','pointer')
 		.on('click',function(){
 			showSplash('instructions',false)	
@@ -787,15 +788,37 @@ function createInstructionsSplash(){
 		.text('Instructions')
 }
 function createTrainingSplash(){
+	var fs = 48;
 	d3.select('body').append('div')
-		.attr('id','training')
-		.attr('class','splash blink_me')
-		.style('line-height',viewerParams.windowHeight + 'px')
-		.style('text-align', 'center')
-		.style('font-size','48px')
+		.attr('id','trainingSplash')
+		.attr('class','splash ')
 		.style('background-color','rgba(50, 50, 50, 0)')
-		.text('Training Model')
-		.classed('hidden', true);
+		.style('width','')
+		.append('div')
+			.attr('id','trainingDivText')
+			.attr('class','blink_me')
+			.style('font-size',fs+'px')
+			.style('line-height',viewerParams.windowHeight + 'px')
+			.style('text-align', 'center')
+			.text('Training Model')
+
+	//make the text fill the screen
+	var x = d3.select('#trainingDivText');
+	var w = parseFloat(x.node().getBoundingClientRect().width);
+	var Ntrial = 0
+	while (w < 0.9*viewerParams.windowWidth && Ntrial < 1000){
+		fs+=1
+		x.style('font-size',fs+'px')
+		w = parseFloat(x.node().getBoundingClientRect().width);
+		Ntrial += 1;
+		if (w >= 0.9*viewerParams.windowWidth || Ntrial >= 1000){
+			d3.select('#trainingSplash')
+				.style('width','100%')
+				.classed('hidden', true)
+
+		}
+	}
+
 }
 function showSplash(id, show){
 	console.log('showSplash',id, show)
@@ -876,7 +899,7 @@ function setViewerParams(vars){
 				viewerParams.objDataShown.forEach(function(dd, jj){
 					attachImageEvents(dd);
 					if (jj == viewerParams.objDataShown.length -1){
-						showSplash('training', false)
+						showSplash('trainingSplash', false)
 						showMLResults();
 					}
 				})
@@ -892,7 +915,7 @@ function setViewerParams(vars){
 function sendToML(){
 	//only send if there are enough images in the buckets
 	if (viewerParams.spiralImages.length >= 2 && viewerParams.smoothImages.length >= 2){
-		showSplash('training', true)
+		showSplash('trainingSplash', true)
 		var ml_input = {
 					'objDataShown':viewerParams.objDataShown,
 					'spiralImages':viewerParams.spiralImages,
