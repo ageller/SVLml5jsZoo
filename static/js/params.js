@@ -55,6 +55,9 @@ function defineViewerParams(){
 		this.sSpiral = 0.;
 		this.nSmoothAgree = 0.;
 		this.sSpiralAgree = 0.;
+
+		//check if the mouse is down or if touch is active 
+		this.mouseDown = false;
 	}
 }
 

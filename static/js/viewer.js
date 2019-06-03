@@ -98,11 +98,13 @@ function attachImageEvents(d){
 	d3.select('#'+getImageID(d))
 		.on('mousedown', function(){
 			d.active = true;
+			viewerParams.mouseDown = true;
 			growImage(d);
 			d3.event.preventDefault();
 		})
 		.on('touchstart', function(){
 			d.active = true;
+			viewerParams.mouseDown = true;
 			growImage(d);
 			d3.event.preventDefault();
 		})
@@ -177,32 +179,50 @@ function createButtons(){
 		.on('mousedown',sendToML)
 		.on('touchStart',sendToML)
 
-	var w = parseFloat(d3.select('#trainingButton').node().getBoundingClientRect().width) - 35; //25 for padding under button, 10 for box shadow
-	var h = parseFloat(d3.select('#trainingButton').node().getBoundingClientRect().height);
-	d3.select('#trainingButton')
-		.style('left',(viewerParams.windowWidth)/2. + 2.*viewerParams.buttonMargin + 2 + 'px')  
-		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
-		.style('width', w - 35 +'px')//25 for padding under button, 10 for box shadow
-		.style('border-radius', h/2 + 'px')
-
 	d3.select('body').append('div')
 		.attr('id','resetButton')
 		.attr('class', 'buttonDiv')
 		.style('height', hb + 'px') 
-		.style('width', w - 35 +'px')//25 for padding under button, 10 for box shadow
 		.style('font-size', hb*0.75 + 'px')
 		.style('line-height', hb + 'px')
 		.style('text-align','center')
 		.style('position','absolute')
 		.style('margin',viewerParams.buttonMargin + 'px')
-		.style('left',(viewerParams.windowWidth)/2. - w - 2.*viewerParams.buttonMargin - 2 +'px')  
-		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
-		.style('border-radius', h/2 + 'px')
 		.text('Reset')
 		.on('mousedown',reset)
 		.on('touchStart',reset)
 
+	var w = parseFloat(d3.select('#trainingButton').node().getBoundingClientRect().width) - 10; //10 for box shadow
+	var h = parseFloat(d3.select('#trainingButton').node().getBoundingClientRect().height);
+	d3.select('#trainingButton')
+		.style('left',(viewerParams.windowWidth)/2. + 2.*viewerParams.buttonMargin + 2 + 'px')  
+		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
+		.style('width', w - 10 +'px')//10 for box shadow
+		.style('border-radius', h/2 + 'px')
 
+	d3.select('#resetButton')
+		.style('left',(viewerParams.windowWidth)/2. - w - 2.*viewerParams.buttonMargin - 2 +'px')  
+		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
+		.style('width', w - 10 +'px')//10 for box shadow
+		.style('border-radius', h/2 + 'px')
+
+
+	d3.select('body').append('div')
+		.attr('id','helpButton')
+		.attr('class', 'buttonDiv')
+		.style('height', hb + 'px') 
+		.style('width', hb +'px')
+		.style('font-size', hb*0.75 + 'px')
+		.style('line-height', hb + 'px')
+		.style('text-align','center')
+		.style('position','absolute')
+		.style('margin',viewerParams.buttonMargin + 'px')
+		.style('left','2px')  
+		.style('top', '2px')
+		.style('border-radius', h/2 + 'px')
+		.text('?')
+		.on('mousedown',function(){showSplash('instructions',true)	})
+		.on('touchStart',function(){showSplash('instructions',true)	})
 
 }
 
@@ -386,42 +406,44 @@ function shrinkImage(d){
 	d3.select('#'+getImageID(d)).selectAll('svg').remove()
 }
 function handleImageMoves(){
-	viewerParams.objDataShown.forEach(function(d){
-		if (d.active){
-			if (d3.event != null){
-				d.dragImageSamples.push(d3.event)
-			}
-			if (d.dragImageSamples.length >2){ //get velocity so that we can give some intertia?
-				d.dragImageSamples.shift();
-				//for MouseEvent
-				var x1 = d.dragImageSamples[0].clientX;
-				var x2 = d.dragImageSamples[1].clientX;
-				var y1 = d.dragImageSamples[0].clientY;
-				var y2 = d.dragImageSamples[1].clientY;
-				if (d.dragImageSamples[0].touches){ //for TouchEvent
-					x1 = d.dragImageSamples[0].touches[0].clientX;
-					x2 = d.dragImageSamples[1].touches[0].clientX;
-					y1 = d.dragImageSamples[0].touches[0].clientY;
-					y2 = d.dragImageSamples[1].touches[0].clientY;
+	if (viewerParams.mouseDown){
+		viewerParams.objDataShown.forEach(function(d){
+			if (d.active){
+				if (d3.event != null){
+					d.dragImageSamples.push(d3.event)
+				}
+				if (d.dragImageSamples.length >2){ //get velocity so that we can give some intertia?
+					d.dragImageSamples.shift();
+					//for MouseEvent
+					var x1 = d.dragImageSamples[0].clientX;
+					var x2 = d.dragImageSamples[1].clientX;
+					var y1 = d.dragImageSamples[0].clientY;
+					var y2 = d.dragImageSamples[1].clientY;
+					if (d.dragImageSamples[0].touches){ //for TouchEvent
+						x1 = d.dragImageSamples[0].touches[0].clientX;
+						x2 = d.dragImageSamples[1].touches[0].clientX;
+						y1 = d.dragImageSamples[0].touches[0].clientY;
+						y2 = d.dragImageSamples[1].touches[0].clientY;
+					}
+
+					var dt = d.dragImageSamples[1].timeStamp - d.dragImageSamples[0].timeStamp;
+					var diffX = x2-x1;
+					var diffY = y2-y1;
+					d.dragImageVx = diffX/dt;
+					d.dragImageVy = diffY/dt;
+
+					var left = parseFloat(d3.select('#'+getImageID(d)).style('left'))
+					var top = parseFloat(d3.select('#'+getImageID(d)).style('top'))
+					var position = [left + diffX, Math.min(Math.max(top + diffY, 0), viewerParams.windowHeight - viewerParams.imageSize)];
+					d3.select('#'+getImageID(d))
+						.style('left', (position[0]) + 'px')
+						.style('top', (position[1]) + 'px')
 				}
 
-				var dt = d.dragImageSamples[1].timeStamp - d.dragImageSamples[0].timeStamp;
-				var diffX = x2-x1;
-				var diffY = y2-y1;
-				d.dragImageVx = diffX/dt;
-				d.dragImageVy = diffY/dt;
 
-				var left = parseFloat(d3.select('#'+getImageID(d)).style('left'))
-				var top = parseFloat(d3.select('#'+getImageID(d)).style('top'))
-				var position = [left + diffX, Math.min(Math.max(top + diffY, 0), viewerParams.windowHeight - viewerParams.imageSize)];
-				d3.select('#'+getImageID(d))
-					.style('left', (position[0]) + 'px')
-					.style('top', (position[1]) + 'px')
 			}
-
-
-		}
-	})
+		})
+	}
 }
 //need to avoid having images running off edge of table and getting lost (without going into bucket)
 function finalMove(d, x0, y0, finalX, finalY, duration){
@@ -548,6 +570,8 @@ function replaceImageInField(d){
 	});
 }
 function finishImageMoves(){
+	//this will need to be placed somewhere else for multitouch
+	viewerParams.mouseDown = false;
 	viewerParams.objDataShown.forEach(function(d){
 		if (d.active){
 			if (parseFloat(d3.select('#'+getImageID(d)).style('height')) > viewerParams.imageSize){
