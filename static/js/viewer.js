@@ -320,7 +320,7 @@ function createCounters(){
 		.style('border-radius', '0px ' + h/2 + 'px ' +h/2 + 'px 0px')
 
 	leftTraining = parseFloat(d3.select('#trainingButton').style('left'));
-	widthTraining = parseFloat(d3.select('#trainingButton').style('width'))+ 35 + 4;//for the box shadow and padding
+	widthTraining = parseFloat(d3.select('#trainingButton').style('width'))+ 10 + 4;//for the box shadow
 	d3.select('#smoothCounter')
 		.style('width',w + 'px')
 		.style('left',leftTraining + widthTraining  + 8 + 'px')//4 for border, 2x2 for padding
