@@ -174,7 +174,9 @@ function createButtons(){
 		.style('line-height', hb + 'px')
 		.style('text-align','center')
 		.style('position','absolute')
-		.style('margin',viewerParams.buttonMargin + 'px')
+		.style('margin','0px')
+		.style('margin-top',viewerParams.buttonMargin + 'px')
+		.style('margin-bottom',viewerParams.buttonMargin + 'px')
 		.text('Train Model')
 		.on('mousedown',sendToML)
 		.on('touchStart',sendToML)
@@ -187,25 +189,12 @@ function createButtons(){
 		.style('line-height', hb + 'px')
 		.style('text-align','center')
 		.style('position','absolute')
-		.style('margin',viewerParams.buttonMargin + 'px')
+		.style('margin','0px')
+		.style('margin-top',viewerParams.buttonMargin + 'px')
+		.style('margin-bottom',viewerParams.buttonMargin + 'px')
 		.text('Reset')
 		.on('mousedown',reset)
 		.on('touchStart',reset)
-
-	var w = parseFloat(d3.select('#trainingButton').node().getBoundingClientRect().width) - 10; //10 for box shadow
-	var h = parseFloat(d3.select('#trainingButton').node().getBoundingClientRect().height);
-	d3.select('#trainingButton')
-		.style('left',(viewerParams.windowWidth)/2. + 2.*viewerParams.buttonMargin + 2 + 'px')  
-		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
-		.style('width', w - 10 +'px')//10 for box shadow
-		.style('border-radius', h/2 + 'px')
-
-	d3.select('#resetButton')
-		.style('left',(viewerParams.windowWidth)/2. - w - 2.*viewerParams.buttonMargin - 2 +'px')  
-		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
-		.style('width', w - 10 +'px')//10 for box shadow
-		.style('border-radius', h/2 + 'px')
-
 
 	d3.select('body').append('div')
 		.attr('id','helpButton')
@@ -216,13 +205,41 @@ function createButtons(){
 		.style('line-height', hb + 'px')
 		.style('text-align','center')
 		.style('position','absolute')
-		.style('margin',viewerParams.buttonMargin + 'px')
-		.style('left','2px')  
-		.style('top', '2px')
-		.style('border-radius', h/2 + 'px')
+		.style('margin','0px')
+		.style('margin-top',viewerParams.buttonMargin + 'px')
+		.style('margin-bottom',viewerParams.buttonMargin + 'px')
 		.text('?')
 		.on('mousedown',function(){showSplash('instructions',true)	})
 		.on('touchStart',function(){showSplash('instructions',true)	})
+
+	var wh = parseFloat(d3.select('#helpButton').node().getBoundingClientRect().width);
+	var w = parseFloat(d3.select('#trainingButton').node().getBoundingClientRect().width);
+	var h = parseFloat(d3.select('#trainingButton').node().getBoundingClientRect().height);
+
+	//center
+	var offset = 10 + 8 + 4 ; //for box shadow, border, padding?
+	d3.select('#helpButton')
+		.style('left',(viewerParams.windowWidth)/2. - wh/2. -2 + 'px')  //why the extra -2? (need to center at least to my eye)
+		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
+		.style('border-radius', h/2 + 'px')
+
+	//right
+	d3.select('#trainingButton')
+		.style('left',(viewerParams.windowWidth)/2. + wh/2. + offset/2. -2 + 'px')   //-2 from above
+		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
+		.style('width', w +'px') 
+		.style('border-radius', h/2 + 'px')
+
+	//left
+	d3.select('#resetButton')
+		.style('left',(viewerParams.windowWidth)/2. - w  - wh/2. -2 +'px')  //-2 from above
+		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
+		.style('width', w -offset +'px') //to make things symmetric by allow white circle of help to be in center
+		.style('border-radius', h/2 + 'px')
+
+
+
+
 
 }
 
@@ -232,7 +249,9 @@ function createCounters(){
 		.attr('class', 'counterDiv')
 		.style('height', viewerParams.buttonHeight + 'px')
 		.style('position','absolute')
-		.style('margin',viewerParams.buttonMargin + 'px')
+		.style('margin','0px')
+		.style('margin-top',viewerParams.buttonMargin + 'px')
+		.style('margin-bottom',viewerParams.buttonMargin + 'px')
 		.style('border-width','4px 4px 4px 0px')
 	spiralCounter.append('div')
 		.attr('id','spiralN')
@@ -252,7 +271,9 @@ function createCounters(){
 		.attr('class', 'counterDiv')
 		.style('height', viewerParams.buttonHeight + 'px')
 		.style('position','absolute')
-		.style('margin',viewerParams.buttonMargin + 'px')
+		.style('margin','0px')
+		.style('margin-top',viewerParams.buttonMargin + 'px')
+		.style('margin-bottom',viewerParams.buttonMargin + 'px')
 		.style('border-width','4px 0px 4px 4px')
 	spiralPercent.append('div')
 		.attr('id','spiralP')
@@ -272,7 +293,9 @@ function createCounters(){
 		.attr('class', 'counterDiv')
 		.style('height', viewerParams.buttonHeight + 'px')
 		.style('position','absolute')
-		.style('margin',viewerParams.buttonMargin + 'px')
+		.style('margin','0px')
+		.style('margin-top',viewerParams.buttonMargin + 'px')
+		.style('margin-bottom',viewerParams.buttonMargin + 'px')
 		.style('border-width','4px 0px 4px 4px')
 	smoothCounter.append('div')
 		.attr('id','smoothN')
@@ -292,7 +315,9 @@ function createCounters(){
 		.attr('class', 'counterDiv')
 		.style('height', viewerParams.buttonHeight + 'px')
 		.style('position','absolute')
-		.style('margin',viewerParams.buttonMargin + 'px')
+		.style('margin','0px')
+		.style('margin-top',viewerParams.buttonMargin + 'px')
+		.style('margin-bottom',viewerParams.buttonMargin + 'px')
 		.style('border-width','4px 4px 4px 0px')
 	smoothPercent.append('div')
 		.attr('id','smoothP')
@@ -321,6 +346,8 @@ function createCounters(){
 
 	leftTraining = parseFloat(d3.select('#trainingButton').style('left'));
 	widthTraining = parseFloat(d3.select('#trainingButton').style('width'))+ 10 + 4;//for the box shadow
+	widthReset = parseFloat(d3.select('#resetButton').style('width'))+ 10 + 4;//for the box shadow
+	widthHelp = parseFloat(d3.select('#helpButton').style('width'))+ 10 + 4;//for the box shadow
 	d3.select('#smoothCounter')
 		.style('width',w + 'px')
 		.style('left',leftTraining + widthTraining  + 8 + 'px')//4 for border, 2x2 for padding
@@ -344,10 +371,10 @@ function createCounters(){
 		.style('border-radius', h/2 + 'px 0px 0px ' + h/2 + 'px')
 
 	var x = d3.select('#smoothCounter')
-	var w2 = maxLeft - (parseFloat(x.style('left')) + parseFloat(x.style('width')) ) -12 - 12 +2;//2x4 for border, 2x2 for padding (for both), and overlap borders;
+	var w2 = maxLeft - (parseFloat(x.style('left')) + parseFloat(x.style('width')) ) -12 +2;//2x4 for border, 2x2 for padding, and overlap borders;
 	d3.select('#smoothPercent')
 		.style('width',w2 + 'px')
-		.style('left',maxLeft - w2 -14 + 'px')//4 for border, 2x2 for padding
+		.style('left',maxLeft - w2 -2 + 'px')//2 for padding
 		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
 		.style('border-radius', '0px ' + h/2 + 'px ' +h/2 + 'px 0px')
 

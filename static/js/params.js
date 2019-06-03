@@ -34,7 +34,7 @@ function defineViewerParams(){
 		this.imageGridWidth;
 		
 		this.buttonHeight = 50;// pixels
-		this.buttonMargin = 2;// pixels
+		this.buttonMargin = 2;// pixels (currently only used for top and bottom)
 
 		//for moving images
 		this.imageInertiaN = 1000; //reference time in ms for inertia
