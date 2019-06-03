@@ -50,8 +50,9 @@ function populateField(){
 	viewerParams.imageSize = (h - viewerParams.imageSepFac*viewerParams.imageBorderWidth - viewerParams.buttonHeight - 2.*viewerParams.buttonMargin)/viewerParams.nImageHeight; //including border
 	viewerParams.imageGrowSize = Math.min(424, viewerParams.imageSize*viewerParams.imageGrow)
 	var divHeight = viewerParams.nImageHeight*viewerParams.imageSize;
-	var divWidth = Math.min(w - 2.*viewerParams.bucketWidth, viewerParams.objData.length/viewerParams.nImageHeight*viewerParams.imageSize);
-	var nImageWidth = Math.floor(divWidth/viewerParams.imageSize);
+	var divWidth0 = Math.min(w - 2.*viewerParams.bucketWidth, viewerParams.objData.length/viewerParams.nImageHeight*viewerParams.imageSize);
+	var nImageWidth = Math.floor(divWidth0/viewerParams.imageSize);
+	divWidth = nImageWidth*viewerParams.imageSize;
 	var xOffset = (w - divWidth)/2. ;
 	var yOffset = 0;//(h - divHeight)/2. ;
 
@@ -217,7 +218,7 @@ function createButtons(){
 	var h = parseFloat(d3.select('#trainingButton').node().getBoundingClientRect().height);
 
 	//center
-	var offset = 10 + 8 + 4 ; //for box shadow, border, padding?
+	var offset = 10 + 8 + 4 ; //for box shadow, border, padding
 	d3.select('#helpButton')
 		.style('left',(viewerParams.windowWidth)/2. - wh/2. -2 + 'px')  //why the extra -2? (need to center at least to my eye)
 		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
@@ -232,18 +233,18 @@ function createButtons(){
 
 	//left
 	d3.select('#resetButton')
-		.style('left',(viewerParams.windowWidth)/2. - w  - wh/2. -2 +'px')  //-2 from above
+		.style('left',(viewerParams.windowWidth)/2. - w  - wh/2. - offset -2  +'px')  //-2 from above
 		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
-		.style('width', w -offset +'px') //to make things symmetric by allow white circle of help to be in center
+		.style('width', w  +'px') //to make things symmetric by allow white circle of help to be in center
 		.style('border-radius', h/2 + 'px')
-
-
-
 
 
 }
 
 function createCounters(){
+	var h = parseFloat(d3.select('#helpButton').node().getBoundingClientRect().height);
+	var t = parseFloat(d3.select('#helpButton').style('top'));
+
 	var spiralCounter = d3.select('body').append('div')
 		.attr('id','spiralCounter')
 		.attr('class', 'counterDiv')
@@ -252,36 +253,38 @@ function createCounters(){
 		.style('margin','0px')
 		.style('margin-top',viewerParams.buttonMargin + 'px')
 		.style('margin-bottom',viewerParams.buttonMargin + 'px')
-		.style('border-width','4px 4px 4px 0px')
+		.style('border-width','4px')
+		.style('border-radius', h/2 + 'px')
+		.style('top', t + 'px')
 	spiralCounter.append('div')
 		.attr('id','spiralN')
+		.style('position','absolute')
+		.style('top', '0px')
 		.style('font-size', viewerParams.buttonHeight*0.75 + 'px')
 		.style('line-height', viewerParams.buttonHeight*0.75 + 'px')
 		.style('text-align','center')
 		.text(viewerParams.spiralImages.length)
 	spiralCounter.append('div')
+		.attr('id','spiralNtext')
+		.style('position','absolute')
+		.style('top', viewerParams.buttonHeight*0.75 + 'px')
 		.style('font-size', viewerParams.buttonHeight*0.25 + 'px')
 		.style('line-height', viewerParams.buttonHeight*0.25 + 'px')
 		.style('text-align','center')
 		.style('padding-right', '10px')
 		.text('# spiral images in model')
-
-	var spiralPercent = d3.select('body').append('div')
-		.attr('id','spiralPercent')
-		.attr('class', 'counterDiv')
-		.style('height', viewerParams.buttonHeight + 'px')
-		.style('position','absolute')
-		.style('margin','0px')
-		.style('margin-top',viewerParams.buttonMargin + 'px')
-		.style('margin-bottom',viewerParams.buttonMargin + 'px')
-		.style('border-width','4px 0px 4px 4px')
-	spiralPercent.append('div')
+	spiralCounter.append('div')
 		.attr('id','spiralP')
+		.style('position','absolute')
+		.style('top', '0px')
 		.style('font-size', viewerParams.buttonHeight*0.75 + 'px')
 		.style('line-height', viewerParams.buttonHeight*0.75 + 'px')
 		.style('text-align','center')
 		.html('&mdash;')
-	spiralPercent.append('div')
+	spiralCounter.append('div')
+		.attr('id','spiralPtext')
+		.style('position','absolute')
+		.style('top', viewerParams.buttonHeight*0.75 + 'px')
 		.style('font-size', viewerParams.buttonHeight*0.25 + 'px')
 		.style('line-height', viewerParams.buttonHeight*0.25 + 'px')
 		.style('text-align','center')
@@ -296,66 +299,50 @@ function createCounters(){
 		.style('margin','0px')
 		.style('margin-top',viewerParams.buttonMargin + 'px')
 		.style('margin-bottom',viewerParams.buttonMargin + 'px')
-		.style('border-width','4px 0px 4px 4px')
+		.style('border-width','4px')
+		.style('border-radius', h/2 + 'px')
+		.style('top', t + 'px')
 	smoothCounter.append('div')
 		.attr('id','smoothN')
+		.style('position','absolute')
+		.style('top', '0px')
 		.style('font-size', viewerParams.buttonHeight*0.75 + 'px')
 		.style('line-height', viewerParams.buttonHeight*0.75 + 'px')
 		.style('text-align','center')
 		.text(viewerParams.smoothImages.length)
 	smoothCounter.append('div')
+		.attr('id','smoothNtext')
+		.style('position','absolute')
+		.style('top', viewerParams.buttonHeight*0.75 + 'px')
 		.style('font-size', viewerParams.buttonHeight*0.25 + 'px')
 		.style('line-height', viewerParams.buttonHeight*0.25 + 'px')
 		.style('text-align','center')
 		.style('padding-left', '10px')
 		.text('# smooth images in model')
-
-	var smoothPercent = d3.select('body').append('div')
-		.attr('id','smoothPercent')
-		.attr('class', 'counterDiv')
-		.style('height', viewerParams.buttonHeight + 'px')
-		.style('position','absolute')
-		.style('margin','0px')
-		.style('margin-top',viewerParams.buttonMargin + 'px')
-		.style('margin-bottom',viewerParams.buttonMargin + 'px')
-		.style('border-width','4px 4px 4px 0px')
-	smoothPercent.append('div')
+	smoothCounter.append('div')
 		.attr('id','smoothP')
+		.style('position','absolute')
+		.style('top', '0px')
 		.style('font-size', viewerParams.buttonHeight*0.75 + 'px')
 		.style('line-height', viewerParams.buttonHeight*0.75 + 'px')
 		.style('text-align','center')
 		.html('&mdash;')
-	smoothPercent.append('div')
+	smoothCounter.append('div')
+		.attr('id','smoothPtext')
+		.style('position','absolute')
+		.style('top', viewerParams.buttonHeight*0.75 + 'px')
 		.style('font-size', viewerParams.buttonHeight*0.25 + 'px')
 		.style('line-height', viewerParams.buttonHeight*0.25 + 'px')
 		.style('text-align','center')
 		.text('smooth agreement')
 
 	//sizes and positions for the counters
-	var w1 = parseFloat(d3.select('#spiralCounter').node().getBoundingClientRect().width);
-	var w2 = parseFloat(d3.select('#smoothCounter').node().getBoundingClientRect().width);
-	var w = Math.max(w1, w2);
-	var h = parseFloat(d3.select('#spiralCounter').node().getBoundingClientRect().height);
 	leftReset = parseFloat(d3.select('#resetButton').style('left'));
-	d3.select('#spiralCounter')
-		.style('width',w + 'px')
-		.style('left', leftReset - w - 8 + 'px')//4 for border, 2x2 for padding
-		//.style('left',viewerParams.imageGridLeft - viewerParams.buttonMargin + 'px')  
-		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
-		.style('border-radius', '0px ' + h/2 + 'px ' +h/2 + 'px 0px')
-
 	leftTraining = parseFloat(d3.select('#trainingButton').style('left'));
-	widthTraining = parseFloat(d3.select('#trainingButton').style('width'))+ 10 + 4;//for the box shadow
-	widthReset = parseFloat(d3.select('#resetButton').style('width'))+ 10 + 4;//for the box shadow
-	widthHelp = parseFloat(d3.select('#helpButton').style('width'))+ 10 + 4;//for the box shadow
-	d3.select('#smoothCounter')
-		.style('width',w + 'px')
-		.style('left',leftTraining + widthTraining  + 8 + 'px')//4 for border, 2x2 for padding
-		//.style('left',maxLeft+viewerParams.imageSize - w - viewerParams.buttonMargin -12 + 'px')  //2x4 for border, 2x2 for padding
-		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
-		.style('border-radius', h/2 + 'px 0px 0px ' + h/2 + 'px')
+	widthTraining = parseFloat(d3.select('#trainingButton').style('width'))+ 10 + 8 + 4 ; //for box shadow, border, padding?
+	widthReset = parseFloat(d3.select('#resetButton').style('width'))+ 10 + 8 + 4 ; //for box shadow, border, padding?
 
-	//sizes and positions for the fraction correct
+	//positions of the grid
 	var maxLeft = 0.;
 	var minLeft = viewerParams.windowWidth;
 	viewerParams.objDataShown.forEach(function(d){
@@ -363,20 +350,54 @@ function createCounters(){
 		minLeft = Math.min(minLeft, d.left);
 	})
 
-	var w1 = parseFloat(d3.select('#spiralCounter').style('left')) - minLeft -6;//4 for border, 2 for padding;
-	d3.select('#spiralPercent')
-		.style('width',w1 + 'px')
-		.style('left',minLeft -2 + 'px')//4 for border, 2x2 for padding
-		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
-		.style('border-radius', h/2 + 'px 0px 0px ' + h/2 + 'px')
+	var w1 = leftReset - minLeft - 12; //2x4 for border, 2x2 for padding
+	d3.select('#spiralCounter')
+		.style('width',w1 + 'px') 
+		.style('left', minLeft + 'px')
+	d3.select('#spiralN')
+		.style('width', w1/2 + 'px')
+		.style('left',  w1/2 + 'px')
+	d3.select('#spiralNtext')
+		.style('width', w1/2 + 'px')
+		.style('left', w1/2 -6 + 'px')//so that there's room for the text given curved border
+	d3.select('#spiralP')
+		.style('width', w1/2 + 'px')
+		.style('left', '0px')
+	d3.select('#spiralPtext')
+		.style('width', w1/2 + 'px')
+		.style('left', '0px')
 
-	var x = d3.select('#smoothCounter')
-	var w2 = maxLeft - (parseFloat(x.style('left')) + parseFloat(x.style('width')) ) -12 +2;//2x4 for border, 2x2 for padding, and overlap borders;
-	d3.select('#smoothPercent')
+	var w2 = maxLeft - leftTraining - widthTraining -12; //2x4 for border, 2x2 for padding
+	d3.select('#smoothCounter')
 		.style('width',w2 + 'px')
-		.style('left',maxLeft - w2 -2 + 'px')//2 for padding
-		.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
-		.style('border-radius', '0px ' + h/2 + 'px ' +h/2 + 'px 0px')
+		.style('left', leftTraining + widthTraining + 'px')
+	d3.select('#smoothN')
+		.style('width', w2/2 + 'px')
+		.style('left',  w2/2 + 'px')
+	d3.select('#smoothNtext')
+		.style('width', w2/2 + 'px')
+		.style('left',  w2/2 + 'px')//so that there's room for the text given curved border
+	d3.select('#smoothP')
+		.style('width', w2/2 + 'px')
+		.style('left', '0px')
+	d3.select('#smoothPtext')
+		.style('width', w2/2 + 'px')
+		.style('left', '0px')
+
+	// var w1 = parseFloat(d3.select('#spiralCounter').style('left')) - minLeft -6;//4 for border, 2 for padding;
+	// d3.select('#spiralPercent')
+	// 	.style('width',w1 + 'px')
+	// 	.style('left',minLeft -2 + 'px')//4 for border, 2x2 for padding
+	// 	.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
+	// 	.style('border-radius', h/2 + 'px 0px 0px ' + h/2 + 'px')
+
+	// var x = d3.select('#smoothCounter')
+	// //var w2 = maxLeft - (parseFloat(x.style('left')) + parseFloat(x.style('width')) ) -12 +2;//2x4 for border, 2x2 for padding, and overlap borders;
+	// d3.select('#smoothPercent')
+	// 	.style('width',w1 + 'px')
+	// 	.style('left',maxLeft - w1 + 'px')//2 for padding
+	// 	.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
+	// 	.style('border-radius', '0px ' + h/2 + 'px ' +h/2 + 'px 0px')
 
 
 }
