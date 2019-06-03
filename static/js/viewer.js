@@ -64,8 +64,10 @@ function populateField(){
 		var left = Math.floor(i/viewerParams.nImageHeight)*viewerParams.imageSize;
 		var top = (i % viewerParams.nImageHeight)*viewerParams.imageSize;
 		if (left < divWidth){
-			d.left = left + xOffset;
-			d.top = top + yOffset;
+			d.left0 = left + xOffset;
+			d.top0 = top + yOffset;
+			d.left = d.left0;
+			d.top = d.top0;
 			d.active = false;
 			d.color = viewerParams.unknownColor;
 			d.dragImageSamples = [];
@@ -346,8 +348,8 @@ function createCounters(){
 	var maxLeft = 0.;
 	var minLeft = viewerParams.windowWidth;
 	viewerParams.objDataShown.forEach(function(d){
-		maxLeft = Math.max(maxLeft, d.left + viewerParams.imageSize);
-		minLeft = Math.min(minLeft, d.left);
+		maxLeft = Math.max(maxLeft, d.left0 + viewerParams.imageSize);
+		minLeft = Math.min(minLeft, d.left0);
 	})
 
 	var w1 = leftReset - minLeft - 12; //2x4 for border, 2x2 for padding
@@ -455,47 +457,90 @@ function shrinkImage(d){
 }
 function handleImageMoves(){
 	if (viewerParams.mouseDown){
-		viewerParams.objDataShown.forEach(function(d){
-			if (d.active){
-				if (d3.event != null){
-					d.dragImageSamples.push(d3.event)
-				}
-				if (d.dragImageSamples.length >2){ //get velocity so that we can give some intertia?
-					d.dragImageSamples.shift();
-					//for MouseEvent
-					var x1 = d.dragImageSamples[0].clientX;
-					var x2 = d.dragImageSamples[1].clientX;
-					var y1 = d.dragImageSamples[0].clientY;
-					var y2 = d.dragImageSamples[1].clientY;
-					if (d.dragImageSamples[0].touches){ //for TouchEvent
-						x1 = d.dragImageSamples[0].touches[0].clientX;
-						x2 = d.dragImageSamples[1].touches[0].clientX;
-						y1 = d.dragImageSamples[0].touches[0].clientY;
-						y2 = d.dragImageSamples[1].touches[0].clientY;
-					}
+		//if there are touches, then handle multitouch
+		// 1) find the distance of the event(s) from the active object
+		// 2) deal with all the touches
 
-					var dt = d.dragImageSamples[1].timeStamp - d.dragImageSamples[0].timeStamp;
-					var diffX = x2-x1;
-					var diffY = y2-y1;
-					d.dragImageVx = diffX/dt;
-					d.dragImageVy = diffY/dt;
-
-					var left = parseFloat(d3.select('#'+getImageID(d)).style('left'))
-					var top = parseFloat(d3.select('#'+getImageID(d)).style('top'))
-					var position = [left + diffX, Math.min(Math.max(top + diffY, 0), viewerParams.windowHeight - viewerParams.imageSize)];
-					d3.select('#'+getImageID(d))
-						.style('left', (position[0]) + 'px')
-						.style('top', (position[1]) + 'px')
-				}
-
-
+		//so that I can loop over events (if f multi-touch)
+		var activeImg = [];
+		if (d3.event.touches){ //for touches, create a list of touch events and the corresponding active image
+			var touches = d3.event.touches
+			if (d3.event.touches.length == 1){
+				touches = [d3.event.touches]
 			}
-		})
+			//console.log(touches.length)
+			touches.forEach(function(e, i){
+				var dst2 = 1e5;
+				var dUse = null;
+				var event = {};
+				var imageIndex = null;
+				viewerParams.objDataShown.forEach(function(d, j){
+					if (d.active){	
+						//find the correct image
+						var x = d.left + viewerParams.imageSize/2.;
+						var y = d.top + viewerParams.imageSize/2.;
+						var x1 = e[0].clientX;
+						var y1 = e[0].clientY;
+						var dst2Test = (x - x1)*(x - x1) + (y - y1)*(y - y1);
+
+						//console.log(e, dst2Test, x,x1,y,y1, i, d.left, d.top)
+						if ( dst2Test < dst2 ){
+							dUse = d;
+							dst2 = dst2Test;
+							imageIndex = j;
+							event = {'clientX':e[0].clientX, 'clientY':e[0].clientY, 'timeStamp':d3.event.timeStamp}
+						}
+					}
+				});
+				var out = {'event':event, 'image':dUse, 'imageIndex':imageIndex}
+				activeImg.push(out)
+				if (dUse == null){
+					console.log('WARNING, no touch match', e, dst2)
+				}
+			});
+		} else { //regular mouse event, should only have one active object
+			viewerParams.objDataShown.forEach(function(d, j){
+				if (d.active){	
+					var out = {'event':d3.event, 'image':d, 'imageIndex':j}
+					activeImg = [out];	
+				}
+			})
+		}
+
+		//now loop through and handle all of the active images
+		activeImg.forEach(function(handle){
+			var d = viewerParams.objDataShown[handle.imageIndex];
+			if (handle.event != null) {
+				d.dragImageSamples.push(handle.event)
+			}
+			if (d.dragImageSamples.length >2){ //get velocity so that we can give some inertia?
+				d.dragImageSamples.shift();
+				//for MouseEvent
+				var x1 = d.dragImageSamples[0].clientX;
+				var x2 = d.dragImageSamples[1].clientX;
+				var y1 = d.dragImageSamples[0].clientY;
+				var y2 = d.dragImageSamples[1].clientY;
+
+				var dt = d.dragImageSamples[1].timeStamp - d.dragImageSamples[0].timeStamp;
+				var diffX = x2-x1;
+				var diffY = y2-y1;
+				d.dragImageVx = diffX/dt;
+				d.dragImageVy = diffY/dt;
+
+				var left = parseFloat(d3.select('#'+getImageID(d)).style('left'))
+				var top = parseFloat(d3.select('#'+getImageID(d)).style('top'))
+				var position = [left + diffX, Math.min(Math.max(top + diffY, 0), viewerParams.windowHeight - viewerParams.imageSize)];
+				d.left = position[0];
+				d.top = position[1];
+				d3.select('#'+getImageID(d))
+					.style('left', d.left + 'px')
+					.style('top', d.top + 'px')
+			}
+		});
 	}
 }
 //need to avoid having images running off edge of table and getting lost (without going into bucket)
 function finalMove(d, x0, y0, finalX, finalY, duration){
-
 	//get equation of line so that we can find the intercept if needed
 	var m = (finalY - y0)/(finalX - x0);
 	var b = y0 - m*x0;
@@ -546,6 +591,9 @@ function finalMove(d, x0, y0, finalX, finalY, duration){
 		.style('left', finalX + 'px')
 		.style('top', finalY + 'px')
 		.on('end', function(){
+			d.left = finalX;
+			d.top = finalY;
+
 			if (bounce){
 				finalMove(d, finalX, finalY, finalX2, finalY2, duration - durationUse)
 			}
@@ -584,11 +632,12 @@ function replaceImageInField(d){
 	//select images with same left value and top < image
 	var sameRow = [];
 	var minTop = 0.;
-	if (d.top > 0){
+	if (d.top0 > 0){
 		minTop = viewerParams.windowHeight;
 		viewerParams.objDataShown.forEach(function(dd, i){
-			if (dd.left == d.left && dd.top < d.top){
-				dd.top += viewerParams.imageSize; //reset this here so that it is consistent with style later
+			if (dd.left == d.left0 && dd.top < d.top0){
+				dd.top0 += viewerParams.imageSize; //reset this here so that it is consistent with style later
+				dd.top = dd.top0;
 				sameRow.push(dd)
 				var x = d3.select('#'+getImageID(dd))
 				minTop = Math.min(minTop,  parseFloat(x.style('top')))
@@ -598,8 +647,10 @@ function replaceImageInField(d){
 
 	//add an image
 	var dd = viewerParams.objData[viewerParams.objDataShown.length]; //I think this is the next one (or else length+1?)
-	dd.left = d.left;
-	dd.top = minTop - viewerParams.imageSize;
+	dd.left0 = d.left0;
+	dd.top0 = minTop - viewerParams.imageSize;
+	dd.left = dd.left0;
+	dd.top = dd.top0;
 	dd.active = false;
 	dd.color = d.color;
 	dd.dragImageSamples = [];
@@ -607,7 +658,8 @@ function replaceImageInField(d){
 	sameRow.push(dd);
 	addImageToField(dd);
 
-	dd.top += viewerParams.imageSize; //reset this here so that it is consistent with style later
+	dd.top0 += viewerParams.imageSize; //reset this here so that it is consistent with style later
+	dd.top = dd.top0;
 
 	//move the images in that row
 	sameRow.forEach(function(dd,i){
