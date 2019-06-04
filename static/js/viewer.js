@@ -361,7 +361,7 @@ function createCounters(){
 		.style('left',  w1/2 + 'px')
 	d3.select('#spiralNtext')
 		.style('width', w1/2 + 'px')
-		.style('left', w1/2 -6 + 'px')//so that there's room for the text given curved border
+		.style('left', w1/2 - 6 + 'px')//so that there's room for the text given curved border
 	d3.select('#spiralP')
 		.style('width', w1/2 + 'px')
 		.style('left', '0px')
@@ -378,7 +378,7 @@ function createCounters(){
 		.style('left',  w2/2 + 'px')
 	d3.select('#smoothNtext')
 		.style('width', w2/2 + 'px')
-		.style('left',  w2/2 + 'px')//so that there's room for the text given curved border
+		.style('left',  w2/2 - 10 + 'px')//so that there's room for the text given curved border
 	d3.select('#smoothP')
 		.style('width', w2/2 + 'px')
 		.style('left', '0px')
@@ -465,6 +465,7 @@ function handleImageMoves(){
 		var activeImg = [];
 		if (d3.event.touches){ //for touches, create a list of touch events and the corresponding active image
 			var touches = d3.event.touches
+			console.log('touches', touches)
 			if (d3.event.touches.length == 1){
 				touches = [d3.event.touches]
 			}
