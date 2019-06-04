@@ -552,6 +552,7 @@ function handleImageMoves(){
 		viewerParams.activeImg.forEach(function(handle){
 			var d = viewerParams.objDataShown[handle.imageIndex];
 			if (handle.event != null) {
+				console.log("checking activeImg",d)
 				d.dragImageSamples.push(handle.event)
 			}
 			if (d.dragImageSamples.length >2){ //get velocity so that we can give some inertia?
@@ -670,6 +671,7 @@ function finalMove(d, x0, y0, finalX, finalY, duration){
 }
 function finishImageMoves(){
 	//this will need to be placed somewhere else for multitouch
+	console.log("in finish moves")
 	if (d3.event.touches){
 		if (d3.event.touches.length == 0){
 			console.log('done with moves')
