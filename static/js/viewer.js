@@ -164,6 +164,48 @@ function addImageToField(d){
 	// 	.attr('stroke-width', strokeWidth)
 	// 	.attr('fill', function(d){return viewerParams.colorMap(d/10.)});
 }
+function replaceImageInField(d){
+	//add another image to the group
+	//select images with same left value and top < image
+	var sameRow = [];
+	var minTop = 0.;
+	if (d.top0 > 0){
+		minTop = viewerParams.windowHeight;
+		viewerParams.objDataShown.forEach(function(dd, i){
+			if (dd.left == d.left0 && dd.top < d.top0){
+				dd.top0 += viewerParams.imageSize; //reset this here so that it is consistent with style later
+				dd.top = dd.top0;
+				sameRow.push(dd)
+				var x = d3.select('#'+getImageID(dd))
+				minTop = Math.min(minTop,  parseFloat(x.style('top')))
+			}
+		});
+	}
+
+	//add an image
+	var dd = viewerParams.objData[viewerParams.objDataShown.length]; //I think this is the next one (or else length+1?)
+	dd.left0 = d.left0;
+	dd.top0 = minTop - viewerParams.imageSize;
+	dd.left = dd.left0;
+	dd.top = dd.top0;
+	dd.active = false;
+	dd.color = d.color;
+	dd.dragImageSamples = [];
+	viewerParams.objDataShown.push(dd);
+	sameRow.push(dd);
+	addImageToField(dd);
+
+	dd.top0 += viewerParams.imageSize; //reset this here so that it is consistent with style later
+	dd.top = dd.top0;
+
+	//move the images in that row
+	sameRow.forEach(function(dd,i){
+		var x = d3.select('#'+getImageID(dd))
+		var top = parseFloat(x.style('top'));
+		x.transition().ease(d3.easeBounceOut).duration(400)
+			.style('top',top+viewerParams.imageSize + 'px')
+	});
+}
 
 //will improve look and feel later
 //also need to only allow under certain conditions
@@ -491,7 +533,7 @@ function handleImageMoves(){
 						}
 					}
 				});
-				var out = {'event':event, 'image':dUse, 'imageIndex':imageIndex}
+				var out = {'event':event, 'eventIndex':i, 'image':dUse, 'imageIndex':imageIndex}
 				activeImg.push(out)
 				if (dUse == null){
 					console.log('WARNING, no touch match', e, dst2)
@@ -500,7 +542,7 @@ function handleImageMoves(){
 		} else { //regular mouse event, should only have one active object
 			viewerParams.objDataShown.forEach(function(d, j){
 				if (d.active){	
-					var out = {'event':d3.event, 'image':d, 'imageIndex':j}
+					var out = {'event':d3.event, 'eventIndex':0, 'image':d, 'imageIndex':j}
 					activeImg = [out];	
 				}
 			})
@@ -626,51 +668,11 @@ function finalMove(d, x0, y0, finalX, finalY, duration){
 
 		})
 }
-function replaceImageInField(d){
-	//add another image to the group
-	//select images with same left value and top < image
-	var sameRow = [];
-	var minTop = 0.;
-	if (d.top0 > 0){
-		minTop = viewerParams.windowHeight;
-		viewerParams.objDataShown.forEach(function(dd, i){
-			if (dd.left == d.left0 && dd.top < d.top0){
-				dd.top0 += viewerParams.imageSize; //reset this here so that it is consistent with style later
-				dd.top = dd.top0;
-				sameRow.push(dd)
-				var x = d3.select('#'+getImageID(dd))
-				minTop = Math.min(minTop,  parseFloat(x.style('top')))
-			}
-		});
-	}
-
-	//add an image
-	var dd = viewerParams.objData[viewerParams.objDataShown.length]; //I think this is the next one (or else length+1?)
-	dd.left0 = d.left0;
-	dd.top0 = minTop - viewerParams.imageSize;
-	dd.left = dd.left0;
-	dd.top = dd.top0;
-	dd.active = false;
-	dd.color = d.color;
-	dd.dragImageSamples = [];
-	viewerParams.objDataShown.push(dd);
-	sameRow.push(dd);
-	addImageToField(dd);
-
-	dd.top0 += viewerParams.imageSize; //reset this here so that it is consistent with style later
-	dd.top = dd.top0;
-
-	//move the images in that row
-	sameRow.forEach(function(dd,i){
-		var x = d3.select('#'+getImageID(dd))
-		var top = parseFloat(x.style('top'));
-		x.transition().ease(d3.easeBounceOut).duration(400)
-			.style('top',top+viewerParams.imageSize + 'px')
-	});
-}
 function finishImageMoves(){
 	//this will need to be placed somewhere else for multitouch
-	viewerParams.mouseDown = false;
+	if (!d3.event.touches){
+		viewerParams.mouseDown = false;
+	}
 	viewerParams.objDataShown.forEach(function(d){
 		if (d.active){
 			if (parseFloat(d3.select('#'+getImageID(d)).style('height')) > viewerParams.imageSize){
@@ -692,6 +694,7 @@ function finishImageMoves(){
 		}
 	})
 }
+
 
 /////////////////////
 //for the Zooniverse stats
