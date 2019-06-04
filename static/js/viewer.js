@@ -552,7 +552,7 @@ function handleImageMoves(){
 		viewerParams.activeImg.forEach(function(handle){
 			var d = viewerParams.objDataShown[handle.imageIndex];
 			if (handle.event != null) {
-				console.log("checking activeImg",d)
+				console.log("checking activeImg",handle.imageIndex, d)
 				d.dragImageSamples.push(handle.event)
 			}
 			if (d.dragImageSamples.length >2){ //get velocity so that we can give some inertia?
