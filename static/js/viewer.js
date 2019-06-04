@@ -504,7 +504,7 @@ function handleImageMoves(){
 		// 2) deal with all the touches
 
 		//so that I can loop over events (if f multi-touch)
-		var activeImg = [];
+		viewerParams.activeImg = [];
 		if (d3.event.touches){ //for touches, create a list of touch events and the corresponding active image
 			for (var i=0; i < d3.event.touches.length; i+=1) {
 				console.log(i, d3.event.touches, d3.event.targetTouches, d3.event.touches.item(i))
@@ -534,7 +534,7 @@ function handleImageMoves(){
 					}
 				});
 				var out = {'event':event, 'eventIndex':i, 'image':dUse, 'imageIndex':imageIndex}
-				activeImg.push(out)
+				viewerParams.activeImg.push(out)
 				if (dUse == null){
 					console.log('WARNING, no touch match', e, dst2)
 				}
@@ -543,13 +543,13 @@ function handleImageMoves(){
 			viewerParams.objDataShown.forEach(function(d, j){
 				if (d.active){	
 					var out = {'event':d3.event, 'eventIndex':0, 'image':d, 'imageIndex':j}
-					activeImg = [out];	
+					viewerParams.activeImg = [out];	
 				}
 			})
 		}
 
 		//now loop through and handle all of the active images
-		activeImg.forEach(function(handle){
+		viewerParams.activeImg.forEach(function(handle){
 			var d = viewerParams.objDataShown[handle.imageIndex];
 			if (handle.event != null) {
 				d.dragImageSamples.push(handle.event)
@@ -670,11 +670,26 @@ function finalMove(d, x0, y0, finalX, finalY, duration){
 }
 function finishImageMoves(){
 	//this will need to be placed somewhere else for multitouch
-	if (!d3.event.touches){
+	if (d3.event.touches){
+		if (d3.event.touches.length == 0){
+			console.log('done with moves')
+			viewerParams.mouseDown = false;
+		}
+	} else {
 		viewerParams.mouseDown = false;
 	}
-	viewerParams.objDataShown.forEach(function(d){
-		if (d.active){
+
+	viewerParams.activeImg.forEach(function(handle){
+		var d = viewerParams.objDataShown[handle.imageIndex];
+		//check if the event is still active
+		var active = false;
+		if (d3.event.touches){
+			for (var i=0; i < d3.event.touches.length; i+=1) {
+				e = d3.event.touches.item(i)
+				if (e.identifier == handle.event.identifier) active = true;
+			}
+		}
+		if (!active){
 			if (parseFloat(d3.select('#'+getImageID(d)).style('height')) > viewerParams.imageSize){
 				shrinkImage(d);
 			}
