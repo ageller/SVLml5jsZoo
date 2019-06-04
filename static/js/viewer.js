@@ -464,14 +464,10 @@ function handleImageMoves(){
 		//so that I can loop over events (if f multi-touch)
 		var activeImg = [];
 		if (d3.event.touches){ //for touches, create a list of touch events and the corresponding active image
-			var touches = d3.event.touches
-			console.log('touches', d3.event.touches.length, touches)
-			console.log('touches[0]', touches[0])
-			if (d3.event.touches.length == 1){
-				touches = [d3.event.touches]
-			}
+			for (var i=0; i < d3.event.touches.length; i+=1) {
+				e = d3.event.touches.item(i)
+
 			//console.log(touches.length)
-			touches.forEach(function(e, i){
 				var dst2 = 1e5;
 				var dUse = null;
 				var event = {};
@@ -499,7 +495,7 @@ function handleImageMoves(){
 				if (dUse == null){
 					console.log('WARNING, no touch match', e, dst2)
 				}
-			});
+			}
 		} else { //regular mouse event, should only have one active object
 			viewerParams.objDataShown.forEach(function(d, j){
 				if (d.active){	
