@@ -465,7 +465,8 @@ function handleImageMoves(){
 		var activeImg = [];
 		if (d3.event.touches){ //for touches, create a list of touch events and the corresponding active image
 			var touches = d3.event.touches
-			console.log('touches', touches)
+			console.log('touches', d3.event.touches.length, touches)
+			console.log('touches[0]', touches[0])
 			if (d3.event.touches.length == 1){
 				touches = [d3.event.touches]
 			}
