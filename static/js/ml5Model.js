@@ -29,7 +29,7 @@ function trainOnImages(imgList, index, id, interval=10){
 				console.log(dImage, id)
 				//https://github.com/ml5js/ml5-examples/issues/59
 				var img = new Image(); //NOTE: currently p5 images don't work in classifier
-				img.src = '/static/data/'+dImage.image;
+				img.src = 'static/data/'+dImage.image;
 				var imgCheck = setInterval(function(){ //wait until the image is loaded
 					if (img.complete) {
 						clearInterval(imgCheck)
@@ -87,7 +87,7 @@ function whileTraining(lossValue) {
 function classify(d) {
 	console.log('classifying', d.image)
 	var img = new Image(); //NOTE: currently p5 images don't work in classifier
-	img.src = '/static/data/'+d.image;
+	img.src = 'static/data/'+d.image;
 	var imgCheck = setInterval(function(){ //wait until the image is loaded
 		if (img.complete) {
 			clearInterval(imgCheck)

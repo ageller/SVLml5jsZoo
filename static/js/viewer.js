@@ -129,7 +129,7 @@ function addImageToField(d){
 		.style('z-index',1)
 
 	div.append('img')
-		.attr('src','/static/data/'+d.image)
+		.attr('src','static/data/'+d.image)
 		.attr('width',viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
 		.attr('height',viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
 
