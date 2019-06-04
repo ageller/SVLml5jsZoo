@@ -504,7 +504,6 @@ function handleImageMoves(){
 		// 2) deal with all the touches
 
 		//so that I can loop over events (if f multi-touch)
-		viewerParams.activeImg = [];
 		if (d3.event.touches){ //for touches, create a list of touch events and the corresponding active image
 			for (var i=0; i < d3.event.touches.length; i+=1) {
 				console.log(i, d3.event.touches, d3.event.targetTouches, d3.event.touches.item(i))
@@ -681,7 +680,7 @@ function finishImageMoves(){
 		viewerParams.mouseDown = false;
 	}
 
-	viewerParams.activeImg.forEach(function(handle){
+	viewerParams.activeImg.forEach(function(handle, j){
 		var d = viewerParams.objDataShown[handle.imageIndex];
 		//check if the event is still active
 		var active = false;
@@ -705,7 +704,7 @@ function finishImageMoves(){
 			finalMove(d, left, top, finalX, finalY, viewerParams.imageInertiaN)
 
 
-
+			viewerParams.activeImg.splice(j,1);
 			d.active = false;
 			d.dragImageSamples = [];
 		}
