@@ -465,6 +465,7 @@ function handleImageMoves(){
 		var activeImg = [];
 		if (d3.event.touches){ //for touches, create a list of touch events and the corresponding active image
 			for (var i=0; i < d3.event.touches.length; i+=1) {
+				console.log(i, d3.event.touches, d3.event.targetTouches, d3.event.touches.item(i))
 				e = d3.event.touches.item(i)
 
 			//console.log(touches.length)
@@ -477,8 +478,8 @@ function handleImageMoves(){
 						//find the correct image
 						var x = d.left + viewerParams.imageSize/2.;
 						var y = d.top + viewerParams.imageSize/2.;
-						var x1 = e[0].clientX;
-						var y1 = e[0].clientY;
+						var x1 = e.clientX;
+						var y1 = e.clientY;
 						var dst2Test = (x - x1)*(x - x1) + (y - y1)*(y - y1);
 
 						//console.log(e, dst2Test, x,x1,y,y1, i, d.left, d.top)
@@ -486,7 +487,7 @@ function handleImageMoves(){
 							dUse = d;
 							dst2 = dst2Test;
 							imageIndex = j;
-							event = {'clientX':e[0].clientX, 'clientY':e[0].clientY, 'timeStamp':d3.event.timeStamp}
+							event = {'clientX':e.clientX, 'clientY':e.clientY, 'timeStamp':d3.event.timeStamp}
 						}
 					}
 				});
