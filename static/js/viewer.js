@@ -529,7 +529,7 @@ function connectTouchToImg(index){
 	return {'event':event, 'image':dUse, 'imageIndex':imageIndex}
 }
 function getImageFromEvent(event, index=0){
-	activeImg = [];
+	var out = {'event':null, 'image':null, 'imageIndex':null}
 	if (event.path){
 		event.path.forEach(function(p){
 			id = d3.select(p).node().id
@@ -544,8 +544,7 @@ function getImageFromEvent(event, index=0){
 							if (event.touches){
 								ev = event.touches.item(index) //what should I do here?
 							}
-							var out = {'event':ev, 'image':d, 'imageIndex':j}
-							activeImg.push(out);	
+							out = {'event':ev, 'image':d, 'imageIndex':j}
 						}
 					})
 				}
@@ -553,7 +552,7 @@ function getImageFromEvent(event, index=0){
 
 		})
 	}
-	return activeImg
+	return out
 }
 function handleImageMoves(event){
 
@@ -571,7 +570,8 @@ function handleImageMoves(event){
 		activeImg = []
 		if (d3.event.touches){ //for touches, create a list of touch events and the corresponding active image
 			for (var i=0; i < d3.event.touches.length; i+=1) {
-				out = connectTouchToImg(i);
+				//out = connectTouchToImg(i);
+				out = getImageFromEvent(event, index=i)
 				if (out.image != null) activeImg.push(out)
 			}
 		} else { //regular mouse event, should only have one active object
