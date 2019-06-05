@@ -723,7 +723,7 @@ function finishImageMoves(event){
 		//check if the event is still active
 		var done = true
 		activeImg.forEach(function(dd){
-			if (d == dd) active = false
+			if (d.id == dd.id) done = false
 		})
 
 		if (d.active && done){
