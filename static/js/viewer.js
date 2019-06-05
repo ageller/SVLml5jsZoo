@@ -476,17 +476,24 @@ function growImage(d){
 	
 }
 function shrinkImage(d){
+	//cancel any transitions
+	d3.selectAll('#'+getImageID(d)).interrupt(); 
+	d3.select('#'+getImageID(d)).select('img').interrupt();
+
 	//for some reason, the transitions don't work for the outer div here?
-	var s1 = viewerParams.imageSize/20.;
-	var s2 = viewerParams.imageSize/10.;
-	var bC = d.color;
-	if (bC == viewerParams.unknownColor) bC = 'gray';
 	d3.select('#'+getImageID(d))//.transition().duration(200)
 		.style('height',viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
 		.style('width',viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
 		.style('margin-top', '0px')
 		.style('margin-left', '0px')
 		.style('border-width',viewerParams.imageBorderWidth + 'px')
+
+	//highlight them (?)
+	var s1 = viewerParams.imageSize/20.;
+	var s2 = viewerParams.imageSize/10.;
+	var bC = d.color;
+	if (bC == viewerParams.unknownColor) bC = 'gray';
+	d3.select('#'+getImageID(d))
 		.style('border-color',bC)
 		//.style('box-shadow', 'none')
 		.style('box-shadow', s1 + 'px ' + s1 + 'px ' + s2 + 'px ' + s2 + 'px rgb(20,20,20)')
@@ -495,7 +502,8 @@ function shrinkImage(d){
 		.attr('height',viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
 		.attr('width',viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
 	d3.select('#'+getImageID(d)).select('#infoBox').html('')
-	d3.select('#'+getImageID(d)).selectAll('svg').remove()
+	d3.select('#'+getImageID(d)).selectAll('svg').remove();
+
 }
 
 function connectTouchToImg(event, index){
@@ -727,15 +735,19 @@ function finishImageMoves(event){
 		})
 
 		if (d.active && done){
-			if (parseFloat(d3.select('#'+getImageID(d)).style('height')) > viewerParams.imageSize){
+			//if (parseFloat(d3.select('#'+getImageID(d)).style('height')) > viewerParams.imageSize){
 				shrinkImage(d);
-			}
+			//}
 
 			var left = parseFloat(d3.select('#'+getImageID(d)).style('left'))
 			var top = parseFloat(d3.select('#'+getImageID(d)).style('top'))	
 
 			var finalX = left + d.dragImageVx*viewerParams.imageInertiaN;
 			var finalY = top + d.dragImageVy*viewerParams.imageInertiaN;
+			if (!finalX || !finalY){
+				finalX = left;
+				finalY = top;
+			}
 			console.log('sending to final move', d, left, top, finalX, finalY)
 			finalMove(d, left, top, finalX, finalY, viewerParams.imageInertiaN)
 
@@ -857,7 +869,9 @@ function populateStats(img){
 	makeStatsPlot(getImageID(img), getImageID(img)+'SpiralClip', spiral, radius, 1, -2*radius - 1.1*bW, viewerParams.spiralColorMap)
 	makeStatsPlot(getImageID(img), getImageID(img)+'SmoothClip', smooth, radius, 1, viewerParams.imageGrowSize - 1.5*bW, viewerParams.smoothColorMap)
 
-	d3.select('#'+getImageID(img)).on('mouseup',function(){shrinkImage(img)});
+	d3.select('#'+getImageID(img))
+		.on('mouseup',function(){shrinkImage(img)})
+		.on('touchend',function(){shrinkImage(img)})
 
 }
 
