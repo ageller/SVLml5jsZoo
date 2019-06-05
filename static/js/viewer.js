@@ -497,6 +497,37 @@ function shrinkImage(d){
 	d3.select('#'+getImageID(d)).select('#infoBox').html('')
 	d3.select('#'+getImageID(d)).selectAll('svg').remove()
 }
+
+function connectTouchToImg(index){
+	e = d3.event.touches.item(index)
+
+//console.log(touches.length)
+	var dst2 = 1e5;
+	var dUse = null;
+	var event = null;
+	var imageIndex = null;
+	viewerParams.objDataShown.forEach(function(d, j){
+		if (d.active){	
+			//find the correct image
+			var x = d.left + viewerParams.imageSize/2.;
+			var y = d.top + viewerParams.imageSize/2.;
+			var x1 = e.clientX;
+			var y1 = e.clientY;
+			var dst2Test = (x - x1)*(x - x1) + (y - y1)*(y - y1);
+
+			if ( dst2Test < dst2 ){
+				dUse = d;
+				dst2 = dst2Test;
+				imageIndex = j;
+				event = {'clientX':e.clientX, 'clientY':e.clientY, 'timeStamp':d3.event.timeStamp}
+			}
+		}
+	});
+	if (dUse == null){
+		console.log('WARNING, no touch match', e, dst2)
+	}
+	return {'event':event, 'image':dUse, 'imageIndex':imageIndex}
+}
 function handleImageMoves(){
 	if (viewerParams.mouseDown){
 		//if there are touches, then handle multitouch
@@ -504,54 +535,25 @@ function handleImageMoves(){
 		// 2) deal with all the touches
 
 		//so that I can loop over events (if f multi-touch)
+		activeImg = []
 		if (d3.event.touches){ //for touches, create a list of touch events and the corresponding active image
 			for (var i=0; i < d3.event.touches.length; i+=1) {
-				console.log(i, d3.event.touches, d3.event.targetTouches, d3.event.touches.item(i))
-				e = d3.event.touches.item(i)
-
-			//console.log(touches.length)
-				var dst2 = 1e5;
-				var dUse = null;
-				var event = {};
-				var imageIndex = null;
-				viewerParams.objDataShown.forEach(function(d, j){
-					if (d.active){	
-						//find the correct image
-						var x = d.left + viewerParams.imageSize/2.;
-						var y = d.top + viewerParams.imageSize/2.;
-						var x1 = e.clientX;
-						var y1 = e.clientY;
-						var dst2Test = (x - x1)*(x - x1) + (y - y1)*(y - y1);
-
-						//console.log(e, dst2Test, x,x1,y,y1, i, d.left, d.top)
-						if ( dst2Test < dst2 ){
-							dUse = d;
-							dst2 = dst2Test;
-							imageIndex = j;
-							event = {'clientX':e.clientX, 'clientY':e.clientY, 'timeStamp':d3.event.timeStamp}
-						}
-					}
-				});
-				var out = {'event':event, 'eventIndex':i, 'image':dUse, 'imageIndex':imageIndex}
-				viewerParams.activeImg.push(out)
-				if (dUse == null){
-					console.log('WARNING, no touch match', e, dst2)
-				}
+				out = connectTouchToImg(i);
+				if (out.image != null) activeImg.push(out)
 			}
 		} else { //regular mouse event, should only have one active object
 			viewerParams.objDataShown.forEach(function(d, j){
 				if (d.active){	
-					var out = {'event':d3.event, 'eventIndex':0, 'image':d, 'imageIndex':j}
-					viewerParams.activeImg = [out];	
+					var out = {'event':d3.event, 'image':d, 'imageIndex':j}
+					activeImg = [out];	
 				}
 			})
 		}
 
 		//now loop through and handle all of the active images
-		viewerParams.activeImg.forEach(function(handle){
+		activeImg.forEach(function(handle){
 			var d = viewerParams.objDataShown[handle.imageIndex];
 			if (handle.event != null) {
-				console.log("checking activeImg",handle.imageIndex, d)
 				d.dragImageSamples.push(handle.event)
 			}
 			if (d.dragImageSamples.length >2){ //get velocity so that we can give some inertia?
@@ -670,27 +672,27 @@ function finalMove(d, x0, y0, finalX, finalY, duration){
 }
 function finishImageMoves(){
 	//this will need to be placed somewhere else for multitouch
-	console.log("in finish moves")
-	if (d3.event.touches){
-		if (d3.event.touches.length == 0){
-			console.log('done with moves')
-			viewerParams.mouseDown = false;
-		}
-	} else {
+	if (!d3.event.touches){
 		viewerParams.mouseDown = false;
 	}
 
-	viewerParams.activeImg.forEach(function(handle, j){
-		var d = viewerParams.objDataShown[handle.imageIndex];
-		//check if the event is still active
-		var active = false;
-		if (d3.event.touches){
-			for (var i=0; i < d3.event.touches.length; i+=1) {
-				e = d3.event.touches.item(i)
-				if (e.identifier == handle.event.identifier) active = true;
-			}
+	var activeImg = [];
+	if (d3.event.touches){ //for touches, create a list of touch events and the corresponding active image
+		for (var i=0; i < d3.event.touches.length; i+=1) {
+			out = connectTouchToImg(i);
+			if (out != null) activeImg.push(out.image);
 		}
-		if (!active){
+		if (activeImg.length == 0) viewerParams.mouseDown = false;
+	}
+
+	viewerParams.objDataShown.forEach(function(d, j){
+		//check if the event is still active
+		var active = false
+		activeImg.forEach(function(dd){
+			if (d == dd) active = true
+		})
+
+		if (d.active && !active){
 			if (parseFloat(d3.select('#'+getImageID(d)).style('height')) > viewerParams.imageSize){
 				shrinkImage(d);
 			}
@@ -700,11 +702,8 @@ function finishImageMoves(){
 
 			var finalX = left + d.dragImageVx*viewerParams.imageInertiaN;
 			var finalY = top + d.dragImageVy*viewerParams.imageInertiaN;
-
 			finalMove(d, left, top, finalX, finalY, viewerParams.imageInertiaN)
 
-
-			viewerParams.activeImg.splice(j,1);
 			d.active = false;
 			d.dragImageSamples = [];
 		}
@@ -871,7 +870,6 @@ function showMLResults(){
 						d3.select('#'+getImageID(d)).select('#textBox').text('X')
 					}
 				})
-			console.log("img, results[0]", d.image, spiral, smooth, d.results[0], d.agree, d.color, d)
 
 
 		}
