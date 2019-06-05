@@ -570,8 +570,8 @@ function handleImageMoves(event){
 		activeImg = []
 		if (d3.event.touches){ //for touches, create a list of touch events and the corresponding active image
 			for (var i=0; i < d3.event.touches.length; i+=1) {
-				//out = connectTouchToImg(i);
-				out = getImageFromEvent(event, index=i)
+				out = connectTouchToImg(i);
+				//out = getImageFromEvent(event, index=i)
 				if (out.image != null) activeImg.push(out)
 			}
 		} else { //regular mouse event, should only have one active object
@@ -712,8 +712,8 @@ function finishImageMoves(event){
 	var activeImg = [];
 	if (d3.event.touches){ //for touches, create a list of touch events and the corresponding active image
 		for (var i=0; i < d3.event.touches.length; i+=1) {
-			out = getImageFromEvent(event, index=i)
-			//out = connectTouchToImg(i);
+			//out = getImageFromEvent(event, index=i)
+			out = connectTouchToImg(i);
 			if (out != null) activeImg.push(out.image);
 		}
 		if (activeImg.length == 0) viewerParams.mouseDown = false;
