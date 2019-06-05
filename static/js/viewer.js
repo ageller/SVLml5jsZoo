@@ -736,6 +736,7 @@ function finishImageMoves(event){
 
 			var finalX = left + d.dragImageVx*viewerParams.imageInertiaN;
 			var finalY = top + d.dragImageVy*viewerParams.imageInertiaN;
+			console.log('sending to final move', d, left, top, finalX, finalY)
 			finalMove(d, left, top, finalX, finalY, viewerParams.imageInertiaN)
 
 			d.active = false;
