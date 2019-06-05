@@ -498,13 +498,13 @@ function shrinkImage(d){
 	d3.select('#'+getImageID(d)).selectAll('svg').remove()
 }
 
-function connectTouchToImg(index){
-	e = d3.event.touches.item(index)
+function connectTouchToImg(event, index){
+	e = event.touches.item(index)
 
 //console.log(touches.length)
 	var dst2 = 1e5;
 	var dUse = null;
-	var event = null;
+	var ev = null;
 	var imageIndex = null;
 	viewerParams.objDataShown.forEach(function(d, j){
 		if (d.active){	
@@ -519,14 +519,14 @@ function connectTouchToImg(index){
 				dUse = d;
 				dst2 = dst2Test;
 				imageIndex = j;
-				event = {'clientX':e.clientX, 'clientY':e.clientY, 'timeStamp':d3.event.timeStamp}
+				ev = {'clientX':e.clientX, 'clientY':e.clientY, 'timeStamp':event.timeStamp}
 			}
 		}
 	});
 	if (dUse == null){
 		console.log('WARNING, no touch match', e, dst2)
 	}
-	return {'event':event, 'image':dUse, 'imageIndex':imageIndex}
+	return {'event':ev, 'image':dUse, 'imageIndex':imageIndex}
 }
 function getImageFromEvent(event, index=0){
 	var out = {'event':null, 'image':null, 'imageIndex':null}
@@ -568,16 +568,16 @@ function handleImageMoves(event){
 
 		//so that I can loop over events (if multi-touch)
 		activeImg = []
-		if (d3.event.touches){ //for touches, create a list of touch events and the corresponding active image
-			for (var i=0; i < d3.event.touches.length; i+=1) {
-				out = connectTouchToImg(i);
+		if (event.touches){ //for touches, create a list of touch events and the corresponding active image
+			for (var i=0; i < event.touches.length; i+=1) {
+				out = connectTouchToImg(event, i);
 				//out = getImageFromEvent(event, index=i)
 				if (out.image != null) activeImg.push(out)
 			}
 		} else { //regular mouse event, should only have one active object
 			viewerParams.objDataShown.forEach(function(d, j){
 				if (d.active){	
-					var out = {'event':d3.event, 'image':d, 'imageIndex':j}
+					var out = {'event':event, 'image':d, 'imageIndex':j}
 					activeImg = [out];	
 				}
 			})
@@ -705,15 +705,15 @@ function finalMove(d, x0, y0, finalX, finalY, duration){
 }
 function finishImageMoves(event){
 	//this will need to be placed somewhere else for multitouch
-	if (!d3.event.touches){
+	if (!event.touches){
 		viewerParams.mouseDown = false;
 	}
 
 	var activeImg = [];
-	if (d3.event.touches){ //for touches, create a list of touch events and the corresponding active image
-		for (var i=0; i < d3.event.touches.length; i+=1) {
+	if (event.touches){ //for touches, create a list of touch events and the corresponding active image
+		for (var i=0; i < event.touches.length; i+=1) {
 			//out = getImageFromEvent(event, index=i)
-			out = connectTouchToImg(i);
+			out = connectTouchToImg(event, i);
 			if (out != null) activeImg.push(out.image);
 		}
 		if (activeImg.length == 0) viewerParams.mouseDown = false;
@@ -721,12 +721,12 @@ function finishImageMoves(event){
 
 	viewerParams.objDataShown.forEach(function(d, j){
 		//check if the event is still active
-		var active = false
+		var done = true
 		activeImg.forEach(function(dd){
-			if (d == dd) active = true
+			if (d == dd) active = false
 		})
 
-		if (d.active && !active){
+		if (d.active && done){
 			if (parseFloat(d3.select('#'+getImageID(d)).style('height')) > viewerParams.imageSize){
 				shrinkImage(d);
 			}
