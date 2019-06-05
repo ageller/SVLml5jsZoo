@@ -528,13 +528,46 @@ function connectTouchToImg(index){
 	}
 	return {'event':event, 'image':dUse, 'imageIndex':imageIndex}
 }
-function handleImageMoves(){
+function getImageFromEvent(event, index=0){
+	activeImg = [];
+	if (event.path){
+		event.path.forEach(function(p){
+			id = d3.select(p).node().id
+			if (id) {
+				if (id.indexOf('jpg') != -1) {
+					var p1 = id.indexOf('_')+1;
+					var p2 = id.indexOf('jpg');
+					var num = parseFloat(id.substring(p1, p2));
+					viewerParams.objDataShown.forEach(function(d, j){
+						if (d.id == num){
+							var ev = event;
+							if (event.touches){
+								ev = event.touches.item(index) //what should I do here?
+							}
+							var out = {'event':ev, 'image':d, 'imageIndex':j}
+							activeImg.push(out);	
+						}
+					})
+				}
+			}
+
+		})
+	}
+	return activeImg
+}
+function handleImageMoves(event){
+
+
 	if (viewerParams.mouseDown){
 		//if there are touches, then handle multitouch
 		// 1) find the distance of the event(s) from the active object
 		// 2) deal with all the touches
 
-		//so that I can loop over events (if f multi-touch)
+		// can I do this?
+		// activeImg = getImageFromEvent(event);
+		// console.log('have activeImg', activeImg)
+
+		//so that I can loop over events (if multi-touch)
 		activeImg = []
 		if (d3.event.touches){ //for touches, create a list of touch events and the corresponding active image
 			for (var i=0; i < d3.event.touches.length; i+=1) {
@@ -670,7 +703,7 @@ function finalMove(d, x0, y0, finalX, finalY, duration){
 
 		})
 }
-function finishImageMoves(){
+function finishImageMoves(event){
 	//this will need to be placed somewhere else for multitouch
 	if (!d3.event.touches){
 		viewerParams.mouseDown = false;
@@ -679,7 +712,8 @@ function finishImageMoves(){
 	var activeImg = [];
 	if (d3.event.touches){ //for touches, create a list of touch events and the corresponding active image
 		for (var i=0; i < d3.event.touches.length; i+=1) {
-			out = connectTouchToImg(i);
+			out = getImageFromEvent(event, index=i)
+			//out = connectTouchToImg(i);
 			if (out != null) activeImg.push(out.image);
 		}
 		if (activeImg.length == 0) viewerParams.mouseDown = false;
@@ -1142,9 +1176,9 @@ function runLocal(){
 ///////////////////////////
 
 d3.select(window)
-	.on('mousemove', handleImageMoves)
-	.on('mouseup', finishImageMoves)
-	.on('touchmove', handleImageMoves)
-	.on('touchend', finishImageMoves)
+	.on('mousemove', function(){handleImageMoves(event)})
+	.on('mouseup', function(){finishImageMoves(event)})
+	.on('touchmove', function(){handleImageMoves(event)})
+	.on('touchend', function(){finishImageMoves(event)})
 
 
