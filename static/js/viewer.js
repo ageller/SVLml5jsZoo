@@ -563,7 +563,7 @@ function getImageFromEvent(event, index=0){
 	return out
 }
 function handleImageMoves(event){
-
+	//this method is not ideal for multi-touch because it will be called for each object that moves and running simultaneoulsy
 
 	if (viewerParams.mouseDown){
 		//if there are touches, then handle multitouch
@@ -595,7 +595,13 @@ function handleImageMoves(event){
 		activeImg.forEach(function(handle){
 			var d = viewerParams.objDataShown[handle.imageIndex];
 			if (handle.event != null) {
-				d.dragImageSamples.push(handle.event)
+				//don't duplicate events
+				var timeStamps = [];
+				d.dragImageSamples.forEach(function(e){
+					timeStamps.push(e.timeStamp)
+				});
+				var check = timeStamps.indexOf(handle.event.timeStamp)
+				if (check == -1) d.dragImageSamples.push(handle.event)
 			}
 			if (d.dragImageSamples.length >2){ //get velocity so that we can give some inertia?
 				d.dragImageSamples.shift();
@@ -606,6 +612,10 @@ function handleImageMoves(event){
 				var y2 = d.dragImageSamples[1].clientY;
 
 				var dt = d.dragImageSamples[1].timeStamp - d.dragImageSamples[0].timeStamp;
+				//not sure why this would happen, but it does...
+				if (dt <= 0){
+					dt = 10. //not quite sure what to set here
+				}
 				var diffX = x2-x1;
 				var diffY = y2-y1;
 				d.dragImageVx = diffX/dt;
@@ -748,7 +758,6 @@ function finishImageMoves(event){
 				finalX = left;
 				finalY = top;
 			}
-			console.log('sending to final move', d, left, top, finalX, finalY)
 			finalMove(d, left, top, finalX, finalY, viewerParams.imageInertiaN)
 
 			d.active = false;
