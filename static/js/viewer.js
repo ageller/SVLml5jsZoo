@@ -1407,13 +1407,33 @@ function runLocal(){
 // runs on load
 ///////////////////////////
 
-d3.select(window)
-	.on('mousemove', function(){handleImageMoves(event)})
-	.on('mouseup', function(){finishImageMoves(event)})
-	.on('touchmove', function(){handleImageMoves(event)})
-	.on('touchend', function(){finishImageMoves(event)})
-
 
 //to reset every so often
-//setInterval(function(){ if not active do this : reset(); showSplash('instructions',true)}, 10000);
+function setIdle(duration=300000){ //5 minutes
+	var timer = setInterval(function(){
+		reset(); 
+		showSplash('instructions',true)
+	},duration);
+	return timer;
+}
+function resetIdle(){
+	clearInterval(idle);
+	idle = setIdle();
+}
+var idle = setIdle();
+
+
+d3.select(window)
+	.on('mousedown',resetIdle)
+	.on('mousemove', function(){
+		handleImageMoves(event)
+		resetIdle();
+	})
+	.on('mouseup', function(){finishImageMoves(event)})
+	.on('touchstart', resetIdle)
+	.on('touchmove', function(){
+		handleImageMoves(event)
+		resetIdle();
+	})
+	.on('touchend', function(){finishImageMoves(event)})
 
