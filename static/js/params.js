@@ -60,6 +60,7 @@ function defineViewerParams(){
 		//check if the mouse is down or if touch is active 
 		this.mouseDown = false;
 		this.inHandleMoves = false;
+		this.activeImageIndex = [];
 	}
 }
 

@@ -98,16 +98,25 @@ function populateField(){
 	})
 }
 
+function addActiveImageIndex(d){
+	viewerParams.objDataShownIndex.forEach(function(i){
+		if (viewerParams.objData[i].id == d.id){
+			viewerParams.activeImageIndex.push(i);
+		}
+	});
+}
 function attachImageEvents(d){
 	d3.select('#'+getImageID(d))
 		.on('mousedown', function(){
 			d.active = true;
+			addActiveImageIndex(d);
 			viewerParams.mouseDown = true;
 			growImage(d);
 			d3.event.preventDefault();
 		})
 		.on('touchstart', function(){
 			d.active = true;
+			addActiveImageIndex(d);
 			viewerParams.mouseDown = true;
 			growImage(d);
 			d3.event.preventDefault();
@@ -517,22 +526,20 @@ function connectTouchToImg(event, index){
 	var dUse = null;
 	var ev = null;
 	var imageIndex = null;
-	viewerParams.objDataShownIndex.forEach(function(i){
+	viewerParams.activeImageIndex.forEach(function(i){
 		var d = viewerParams.objData[i]
-		if (d.active){	
-			//find the correct image
-			var x = d.left + viewerParams.imageSize/2.;
-			var y = d.top + viewerParams.imageSize/2.;
-			var x1 = e.clientX;
-			var y1 = e.clientY;
-			var dst2Test = (x - x1)*(x - x1) + (y - y1)*(y - y1);
+		//find the correct image
+		var x = d.left + viewerParams.imageSize/2.;
+		var y = d.top + viewerParams.imageSize/2.;
+		var x1 = e.clientX;
+		var y1 = e.clientY;
+		var dst2Test = (x - x1)*(x - x1) + (y - y1)*(y - y1);
 
-			if ( dst2Test < dst2 ){
-				dUse = d;
-				dst2 = dst2Test;
-				imageIndex = i;
-				ev = {'clientX':e.clientX, 'clientY':e.clientY, 'timeStamp':event.timeStamp}
-			}
+		if ( dst2Test < dst2 ){
+			dUse = d;
+			dst2 = dst2Test;
+			imageIndex = i;
+			ev = {'clientX':e.clientX, 'clientY':e.clientY, 'timeStamp':event.timeStamp}
 		}
 	});
 	if (dUse == null){
@@ -550,7 +557,7 @@ function getImageFromEvent(event, index=0){
 					var p1 = id.indexOf('_')+1;
 					var p2 = id.indexOf('jpg');
 					var num = parseFloat(id.substring(p1, p2));
-					viewerParams.objDataShownIndex.forEach(function(i){
+					viewerParams.activeImageIndex.forEach(function(i){
 						var d = viewerParams.objData[i]
 						if (d.id == num){
 							var ev = event;
@@ -588,12 +595,10 @@ function handleImageMoves(event){
 				if (out.image != null) activeImg.push(out)
 			}
 		} else { //regular mouse event, should only have one active object
-			viewerParams.objDataShownIndex.forEach(function(i){
+			viewerParams.activeImageIndex.forEach(function(i){
 				var d = viewerParams.objData[i]
-				if (d.active){	
-					var out = {'event':event, 'image':d, 'imageIndex':i}
-					activeImg = [out];	
-				}
+				var out = {'event':event, 'image':d, 'imageIndex':i}
+				activeImg = [out];	
 			})
 		}
 
@@ -744,7 +749,7 @@ function finishImageMoves(event){
 		if (activeImg.length == 0) viewerParams.mouseDown = false;
 	}
 
-	viewerParams.objDataShownIndex.forEach(function(i){
+	viewerParams.activeImageIndex.forEach(function(i){
 		var d = viewerParams.objData[i]
 		//check if the event is still active
 		var done = true
@@ -752,7 +757,7 @@ function finishImageMoves(event){
 			if (d.id == dd.id) done = false
 		})
 
-		if (d.active && done){
+		if (done){
 			//if (parseFloat(d3.select('#'+getImageID(d)).style('height')) > viewerParams.imageSize){
 				shrinkImage(d);
 			//}
@@ -770,6 +775,12 @@ function finishImageMoves(event){
 
 			d.active = false;
 			d.dragImageSamples = [];
+			if (i >= viewerParams.activeImageIndex.length - 1){ //remove this image from the activeImage array
+				var index = viewerParams.activeImageIndex.indexOf(i);
+				if (index > -1) {
+					viewerParams.activeImageIndex.splice(index, 1);
+				}
+			}
 		}
 	})
 }
