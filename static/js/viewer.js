@@ -71,14 +71,15 @@ function populateField(){
 			d.active = false;
 			d.color = viewerParams.unknownColor;
 			d.dragImageSamples = [];
-			viewerParams.objDataShown.push(d);
+			viewerParams.objDataShownIndex.push(i);
 
 		}
 	})
 
 	viewerParams.nSpiral = 0.;
 	viewerParams.nSmooth = 0.;
-	viewerParams.objDataShown.forEach(function(d,i){
+	viewerParams.objDataShownIndex.forEach(function(i){
+		var d = viewerParams.objData[i]
 		var spiral = 10*d['t04_spiral_a08_spiral_debiased'];
 		var smooth = 10*d['t01_smooth_or_features_a01_smooth_debiased'];
 		if (spiral > smooth){
@@ -88,12 +89,12 @@ function populateField(){
 		}
 	});
 
-	console.log('N images available, used', viewerParams.objData.length, viewerParams.objDataShown.length)
+	console.log('N images available, used', viewerParams.objData.length, viewerParams.objDataShownIndex.length)
 	console.log('N spiral, N smooth', viewerParams.nSpiral, viewerParams.nSmooth)
 	console.log('image size', viewerParams.imageSize)
 
-	viewerParams.objDataShown.forEach(function(d){
-		addImageToField(d)
+	viewerParams.objDataShownIndex.forEach(function(i){
+		addImageToField(viewerParams.objData[i])
 	})
 }
 
@@ -171,7 +172,8 @@ function replaceImageInField(d){
 	var minTop = 0.;
 	if (d.top0 > 0){
 		minTop = viewerParams.windowHeight;
-		viewerParams.objDataShown.forEach(function(dd, i){
+		viewerParams.objDataShownIndex.forEach(function(i){
+			var dd = viewerParams.objData[i]
 			if (dd.left == d.left0 && dd.top < d.top0){
 				dd.top0 += viewerParams.imageSize; //reset this here so that it is consistent with style later
 				dd.top = dd.top0;
@@ -183,15 +185,15 @@ function replaceImageInField(d){
 	}
 
 	//add an image
-	var dd = viewerParams.objData[viewerParams.objDataShown.length]; //I think this is the next one (or else length+1?)
+	var dd = viewerParams.objData[viewerParams.objDataShownIndex.length]; //I think this is the next one (or else length+1?)
 	dd.left0 = d.left0;
 	dd.top0 = minTop - viewerParams.imageSize;
 	dd.left = dd.left0;
 	dd.top = dd.top0;
 	dd.active = false;
-	dd.color = d.color;
+	dd.color = viewerParams.unknownColor;
 	dd.dragImageSamples = [];
-	viewerParams.objDataShown.push(dd);
+	viewerParams.objDataShownIndex.push(viewerParams.objDataShownIndex.length);
 	sameRow.push(dd);
 	addImageToField(dd);
 
@@ -389,7 +391,8 @@ function createCounters(){
 	//positions of the grid
 	var maxLeft = 0.;
 	var minLeft = viewerParams.windowWidth;
-	viewerParams.objDataShown.forEach(function(d){
+	viewerParams.objDataShownIndex.forEach(function(i){
+		var d = viewerParams.objData[i]
 		maxLeft = Math.max(maxLeft, d.left0 + viewerParams.imageSize);
 		minLeft = Math.min(minLeft, d.left0);
 	})
@@ -417,16 +420,16 @@ function createCounters(){
 		.style('left', leftTraining + widthTraining + 'px')
 	d3.select('#smoothN')
 		.style('width', w2/2 + 'px')
-		.style('left',  w2/2 + 'px')
+		.style('left', '0px')
 	d3.select('#smoothNtext')
 		.style('width', w2/2 + 'px')
-		.style('left',  w2/2 - 10 + 'px')//so that there's room for the text given curved border
+		.style('left', '0px')
 	d3.select('#smoothP')
 		.style('width', w2/2 + 'px')
-		.style('left', '0px')
+		.style('left',  w2/2 + 'px')
 	d3.select('#smoothPtext')
 		.style('width', w2/2 + 'px')
-		.style('left', '0px')
+		.style('left',  w2/2 - 10 + 'px')//so that there's room for the text given curved border
 
 	// var w1 = parseFloat(d3.select('#spiralCounter').style('left')) - minLeft -6;//4 for border, 2 for padding;
 	// d3.select('#spiralPercent')
@@ -514,7 +517,8 @@ function connectTouchToImg(event, index){
 	var dUse = null;
 	var ev = null;
 	var imageIndex = null;
-	viewerParams.objDataShown.forEach(function(d, j){
+	viewerParams.objDataShownIndex.forEach(function(i){
+		var d = viewerParams.objData[i]
 		if (d.active){	
 			//find the correct image
 			var x = d.left + viewerParams.imageSize/2.;
@@ -526,7 +530,7 @@ function connectTouchToImg(event, index){
 			if ( dst2Test < dst2 ){
 				dUse = d;
 				dst2 = dst2Test;
-				imageIndex = j;
+				imageIndex = i;
 				ev = {'clientX':e.clientX, 'clientY':e.clientY, 'timeStamp':event.timeStamp}
 			}
 		}
@@ -540,19 +544,20 @@ function getImageFromEvent(event, index=0){
 	var out = {'event':null, 'image':null, 'imageIndex':null}
 	if (event.path){
 		event.path.forEach(function(p){
-			id = d3.select(p).node().id
+			var id = d3.select(p).node().id
 			if (id) {
 				if (id.indexOf('jpg') != -1) {
 					var p1 = id.indexOf('_')+1;
 					var p2 = id.indexOf('jpg');
 					var num = parseFloat(id.substring(p1, p2));
-					viewerParams.objDataShown.forEach(function(d, j){
+					viewerParams.objDataShownIndex.forEach(function(i){
+						var d = viewerParams.objData[i]
 						if (d.id == num){
 							var ev = event;
 							if (event.touches){
 								ev = event.touches.item(index) //what should I do here?
 							}
-							out = {'event':ev, 'image':d, 'imageIndex':j}
+							out = {'event':ev, 'image':d, 'imageIndex':i}
 						}
 					})
 				}
@@ -583,9 +588,10 @@ function handleImageMoves(event){
 				if (out.image != null) activeImg.push(out)
 			}
 		} else { //regular mouse event, should only have one active object
-			viewerParams.objDataShown.forEach(function(d, j){
+			viewerParams.objDataShownIndex.forEach(function(i){
+				var d = viewerParams.objData[i]
 				if (d.active){	
-					var out = {'event':event, 'image':d, 'imageIndex':j}
+					var out = {'event':event, 'image':d, 'imageIndex':i}
 					activeImg = [out];	
 				}
 			})
@@ -593,7 +599,7 @@ function handleImageMoves(event){
 
 		//now loop through and handle all of the active images
 		activeImg.forEach(function(handle){
-			var d = viewerParams.objDataShown[handle.imageIndex];
+			var d = viewerParams.objData[handle.imageIndex];
 			if (handle.event != null) {
 				d.dragImageSamples.push(handle.event)
 			}
@@ -682,6 +688,7 @@ function finalMove(d, x0, y0, finalX, finalY, duration){
 				finalMove(d, finalX, finalY, finalX2, finalY2, duration - durationUse)
 			}
 			if (bucket != null){
+				d3.select('#'+getImageID(d)).classed('hidden', true)
 				var growFac = 1.2;
 				tSize = parseFloat(d3.select('#'+bucket).style('font-size'));
 				left = parseFloat(d3.select('#'+bucket).style('left'));
@@ -727,7 +734,8 @@ function finishImageMoves(event){
 		if (activeImg.length == 0) viewerParams.mouseDown = false;
 	}
 
-	viewerParams.objDataShown.forEach(function(d, j){
+	viewerParams.objDataShownIndex.forEach(function(i){
+		var d = viewerParams.objData[i]
 		//check if the event is still active
 		var done = true
 		activeImg.forEach(function(dd){
@@ -880,7 +888,8 @@ function showMLResults(){
 	viewerParams.nSmoothAgree = 0.;
 	viewerParams.nSpiral = 0.;
 	viewerParams.nSmooth = 0.;
-	viewerParams.objDataShown.forEach(function(d,i){
+	viewerParams.objDataShownIndex.forEach(function(i){
+		var d = viewerParams.objData[i]
 		var spiral = 10*d['t04_spiral_a08_spiral_debiased'];
 		var smooth = 10*d['t01_smooth_or_features_a01_smooth_debiased'];
 		if (spiral > smooth){
@@ -910,6 +919,7 @@ function showMLResults(){
 					d.agree = false;
 				}
 			}
+			console.log(d.agree)
 			d3.select('#'+getImageID(d)).transition().duration(1000)
 				.style('border-color',d.color)
 				.on('end', function(){
@@ -922,7 +932,7 @@ function showMLResults(){
 
 
 		}
-		if (i == viewerParams.objDataShown.length-1){
+		if (i == viewerParams.objDataShownIndex.length-1){
 			//show the percent agreement (will have some way to display on screen later)
 			//NOTE: I think this will also include the training set (but is that a problem?)
 			d3.select('#spiralP').html(Math.round(viewerParams.nSpiralAgree/viewerParams.nSpiral*100.)+'%')
@@ -1054,7 +1064,7 @@ var shuffle = function(array){
 function reset(){
 	viewerParams.spiralImages=[];
 	viewerParams.smoothImages=[];
-	viewerParams.objDataShown=[];
+	viewerParams.objDataShownIndex=[];
 	d3.select('#spiralN').text('0')
 	d3.select('#smoothN').text('0')
 	d3.select('#spiralP').html('&mdash;')
@@ -1063,6 +1073,14 @@ function reset(){
 	populateField();
 }
 function init(){
+	//first send the object data to ML
+	var ml_input = {'objData':viewerParams.objData};
+	if (viewerParams.usingSocket){
+		socketParams.socket.emit('ml_input',ml_input);
+	} else {
+		setMLParams(ml_input);
+	}
+
 	createInstructionsSplash();
 	createTrainingSplash();
 	setColorMaps();
@@ -1085,9 +1103,11 @@ function setViewerParams(vars){
 			viewerParams[k].push(d)
 			if (i == keys.length-1 && j == vars[k].length-1){
 				//update the viewer (when using sockets, I need to reattach the events)
-				viewerParams.objDataShown.forEach(function(dd, jj){
+				viewerParams.objDataShownIndex.forEach(function(jj){
+					var dd = viewerParams.objData[jj]
+					dd.results = viewerParams.objDataShownClassifications[jj];
 					attachImageEvents(dd);
-					if (jj == viewerParams.objDataShown.length -1){
+					if (jj == viewerParams.objDataShownIndex.length -1){
 						showSplash('trainingSplash', false)
 						showMLResults();
 					}
@@ -1096,7 +1116,7 @@ function setViewerParams(vars){
 			}
 		});
 	});
-	console.log('have params for viewer', viewerParams.objDataShown)
+	console.log('have params for viewer.')
 
 
 }
@@ -1106,7 +1126,7 @@ function sendToML(){
 	if (viewerParams.spiralImages.length >= 2 && viewerParams.smoothImages.length >= 2){
 		showSplash('trainingSplash', true)
 		var ml_input = {
-					'objDataShown':viewerParams.objDataShown,
+					'objDataShownIndex':viewerParams.objDataShownIndex,
 					'spiralImages':viewerParams.spiralImages,
 					'smoothImages':viewerParams.smoothImages
 					};

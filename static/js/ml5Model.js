@@ -19,14 +19,22 @@ function modelReady(){
 	MLParams.modelReady = true;
 }
 
-//train
+//train 
+// this function could probably be written more intelligently.  
+// right now it's recursive because I need to wait for one image to be done before loading another
+// but it would be better if I could split this into two functions 
+//    (1) loops through all images and calls 
+//    (2) which adds a single image
 function trainOnImages(imgList, index, id, interval=10){
 	var check = setInterval(function(){ //wait until the model is ready
 		if (MLParams.modelReady) {
 			clearInterval(check);
 			var dImage = imgList[index]
-			if (dImage != null){
-				console.log(dImage, id)
+			var checkIM = MLParams.trainedIDs.indexOf(dImage.id)
+			console.log('checking on image', checkIM)
+			if (dImage != null && checkIM == -1){
+				MLParams.trainedIDs.push(dImage.id)
+				console.log("training on ", dImage, id, MLParams.trainedIDs)
 				//https://github.com/ml5js/ml5-examples/issues/59
 				var img = new Image(); //NOTE: currently p5 images don't work in classifier
 				img.src = 'static/data/'+dImage.image;
@@ -35,7 +43,7 @@ function trainOnImages(imgList, index, id, interval=10){
 						clearInterval(imgCheck)
 						// the secret is that addImage is async
 						MLParams.classifier.addImage(img, id, function(){ //wait until the image is added
-							console.log(dImage.image, img, id);
+							console.log("adding image", dImage.image, img, id);
 							img = null;
 							if (index+1 < imgList.length){
 								trainOnImages(imgList, index+1, id)
@@ -84,7 +92,7 @@ function whileTraining(lossValue) {
 }
 
 //classify
-function classify(d) {
+function classify(d,i) {
 	console.log('classifying', d.image)
 	var img = new Image(); //NOTE: currently p5 images don't work in classifier
 	img.src = 'static/data/'+d.image;
@@ -93,10 +101,10 @@ function classify(d) {
 			clearInterval(imgCheck)
 			MLParams.classifier.classify(img, function(err, results){
 				//save the results
-				d.results = []
+				MLParams.objDataShownClassifications[i] = []
 				if (results && results[0]) {
 					results.forEach(function(x){
-						d.results.push(x)
+						MLParams.objDataShownClassifications[i].push(x)
 					})
 				}
 				MLParams.nClassified += 1;
@@ -107,10 +115,13 @@ function classify(d) {
 
 //run everything once
 function runModel(){
+	MLParams.objDataShownClassifications = new Array(MLParams.objDataShownIndex.length);
 	MLParams.modelReady = false;
 	MLParams.modelBusy = true;
 	MLParams.doneTraining = 0;
 	MLParams.nClassified = 0;
+	MLParams.trainedIDs = [];
+
 	initializeML();
 	var check = setInterval(function(){ //wait until the model is ready
 		if (MLParams.modelReady) {
@@ -119,8 +130,9 @@ function runModel(){
 			var check2 = setInterval(function(){ //wait training is finished
 				if (MLParams.doneTraining == 3){
 					clearInterval(check2);
-					MLParams.objDataShown.forEach(function(d, i){
-						classify(d);
+					MLParams.objDataShownIndex.forEach(function(i){
+						var d = MLParams.objData[i]
+						classify(d,i);
 					})
 				}
 			},10);
@@ -129,7 +141,7 @@ function runModel(){
 
 	var checkML = setInterval(function(){
 		//console.log(MLParams.nClassified, MLParams.objDataShown.length);
-		if (MLParams.nClassified >= MLParams.objDataShown.length){
+		if (MLParams.nClassified >= MLParams.objDataShownIndex.length){
 			clearInterval(checkML);
 			MLParams.modelBusy = false;
 			MLParams.modelUpdateNeeded = false;
@@ -150,8 +162,10 @@ function setMLParams(vars){
 		vars[k].forEach(function(d, j){
 			MLParams[k].push(d)
 			if (i == keys.length-1 && j == vars[k].length-1){
-				//run the ML model
-				runModel();
+				if (MLParams.spiralImages.length >= 2 && MLParams.smoothImages.length >= 2) {
+					//run the ML model
+					runModel();
+				}
 			}
 		})
 	});
@@ -161,7 +175,7 @@ function setMLParams(vars){
 }
 
 function sendToViewer(){
-	var viewer_input = {'objDataShown':MLParams.objDataShown}
+	var viewer_input = {'objDataShownClassifications':MLParams.objDataShownClassifications}
 	if (MLParams.usingSocket){
 		socketParams.socket.emit('viewer_input',viewer_input);
 	} else {

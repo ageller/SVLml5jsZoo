@@ -7,8 +7,9 @@ function defineViewerParams(){
 	viewerParams = new function() {
 
 		//data 
-		this.objData=null;
-		this.objDataShown=[]; //<--shared with MLParams
+		this.objData=null; //<--shared with MLParams
+		this.objDataShownIndex=[]; //<--shared with MLParams
+		this.objDataShownClassifications=[]; //<--shared with viewerParams
 
 		//will contain the users classifications 
 		this.spiralImages=[]; //<--shared with MLParams
@@ -66,7 +67,9 @@ function defineMLParams(){
 	MLParams = new function() {
 
 		//data 
-		this.objDataShown=[]; //<--shared with viewerParams
+		this.objData=[]; //<--shared with viewerParams
+		this.objDataShownIndex=[]; //<--shared with viewerParams
+		this.objDataShownClassifications=[]; //<--shared with viewerParams
 
 		//will contain the users classifications 
 		this.spiralImages=[]; //<--shared with viewerParams
@@ -82,7 +85,8 @@ function defineMLParams(){
 		this.doneTraining = 0;
 		this.nClassified = 0;
 		this.modelCheckInterval = 1000; //ms between checks of finished model
-
+		this.trainedIDs = [];
+		
 		//check if we're using web sockets
 		this.usingSocket = true;
 
