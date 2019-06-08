@@ -1003,26 +1003,37 @@ function createInstructionsSplash(){
 		})
 		//.text('Instructions')
 
+	var fs = viewerParams.windowHeight/35;
+	var fsN = viewerParams.windowHeight/15;
+	var yOffset = fs;
+	var imageTop = fsN + 3.*yOffset;
+	var stepsTop = fsN + 3.*yOffset + 75;
+	var stepsLeft = 10;
+	var stepsWidth = viewerParams.windowWidth/2.5;
 
-	var fsT = 60;
 	var instTitle = instr.append('div')
 		.attr('id', 'instructionsTitle')
 		.style('position', 'absolute')
 		.style('top', '10px')
 		.style('left','10px')
 		.style('width',viewerParams.windowWidth - 20 + 'px')
-		.style('height', fsT + 'px')	
+		.style('height', fsN + 'px')	
 		.style('text-align', 'center')
-		.style('line-height',fsT +'px')
-		.style('font-size',fsT +'px')
+		.style('line-height',fsN +'px')
+		.style('font-size',fsN +'px')
 		.text("Hi! Please help me classify these galaxies...")
+	var instBottom = instr.append('div')
+		.attr('id', 'instructionsBottom')
+		.style('position', 'absolute')
+		.style('top', viewerParams.windowHeight - fsN - 20 + 'px')
+		.style('left','10px')
+		.style('width',viewerParams.windowWidth - 20 + 'px')
+		.style('height', fsN + 'px')	
+		.style('text-align', 'center')
+		.style('line-height',fsN +'px')
+		.style('font-size',fsN +'px')
+		.text("Touch anywhere to begin.")
 
-	var fs = viewerParams.windowHeight/25;
-	var fsN = viewerParams.windowHeight/10;
-	var stepsTop = 100;
-	var stepsLeft = 10;
-	var stepsWidth = viewerParams.windowWidth/2.5;
-	var yOffset = fs;
 	var instr1 = instr.append('div')
 		.attr('id', 'instructionsStep1')
 		.style('position', 'absolute')
@@ -1106,7 +1117,7 @@ function createInstructionsSplash(){
 		.style('text-align', 'left')
 		.style('line-height',1.1*fs + 'px')
 		.style('font-size',fs +'px')
-		.text('After you have at least 2 images in each category.  Click the "Train Model" button at the bottom, and I\'ll get to work!')	
+		.text('After you have at least 2 images in each category.  Click the "Train Model" button at the bottom, and I\'ll get to work!  (I use a "Machine Learning" model developed by Google.)')	
 	var h3 = parseFloat(d3.select('#instructionsStep3Text').node().getBoundingClientRect().height) + yOffset;
 	d3.select('#instructionsStep3Text').style('height', h3 + 'px')
 
@@ -1139,7 +1150,6 @@ function createInstructionsSplash(){
 	var h4 = parseFloat(d3.select('#instructionsStep4Text').node().getBoundingClientRect().height) + yOffset;
 	d3.select('#instructionsStep4Text').style('height', h4 + 'px')
 
-
 	var imgWidth = viewerParams.windowWidth - stepsWidth - stepsLeft - 20;
 
 	//https://davidwalsh.name/css-flip
@@ -1147,7 +1157,7 @@ function createInstructionsSplash(){
 		.attr('id','instructionsImages')
 		.attr('class','flip-container')
 		.style('position', 'absolute')
-		.style('top',stepsTop + 'px')
+		.style('top',imageTop + 'px')
 		.style('left', stepsLeft + stepsWidth + 10 + 'px')
 		.style('width',imgWidth + 'px')
 		.append('div')
