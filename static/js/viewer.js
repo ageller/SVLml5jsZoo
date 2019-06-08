@@ -993,18 +993,185 @@ function setColorMaps(){
 
 //splash screens (for instructions and training)
 function createInstructionsSplash(){
-	d3.select('body').append('div')
+	var instr = d3.select('body').append('div')
 		.attr('id','instructions')
 		.attr('class','splash')
-		.style('line-height',viewerParams.windowHeight + 'px')
-		.style('text-align', 'center')
-		.style('font-size','48px')
 		.style('width','100%')
 		.style('cursor','pointer')
 		.on('click',function(){
 			showSplash('instructions',false)	
 		})
-		.text('Instructions')
+		//.text('Instructions')
+
+
+	var fsT = 60;
+	var instTitle = instr.append('div')
+		.attr('id', 'instructionsTitle')
+		.style('position', 'absolute')
+		.style('top', '10px')
+		.style('left','10px')
+		.style('width',viewerParams.windowWidth - 20 + 'px')
+		.style('height', fsT + 'px')	
+		.style('text-align', 'center')
+		.style('line-height',fsT +'px')
+		.style('font-size',fsT +'px')
+		.text("Hi! Please help me classify these galaxies...")
+
+	var fs = viewerParams.windowHeight/25;
+	var fsN = viewerParams.windowHeight/10;
+	var stepsTop = 100;
+	var stepsLeft = 10;
+	var stepsWidth = viewerParams.windowWidth/2.5;
+	var yOffset = fs;
+	var instr1 = instr.append('div')
+		.attr('id', 'instructionsStep1')
+		.style('position', 'absolute')
+		.style('top', stepsTop + 'px')
+		.style('left',stepsLeft + 'px')
+		.style('width', stepsWidth + 'px')
+	instr1.append('div')
+		.attr('id','instructionsStepN')
+		.style('position','absolute')
+		.style('left',0)
+		.style('top',0)
+		.style('width',1.1*fsN + 'px')
+		.style('text-align', 'center')
+		.style('line-height',fsN +'px')
+		.style('font-size',fsN +'px')
+		.html('&#10102;')
+	instr1.append('div')
+		.attr('id','instructionsStep1Text')
+		.style('position','absolute')
+		.style('left',1.1*fsN+'px')
+		.style('top',0)
+		.style('width',stepsWidth - 1.1*fsN + 'px')
+		.style('text-align', 'left')
+		.style('line-height',1.1*fs + 'px')
+		.style('font-size',fs +'px')
+		.text('Touch a square to see how the Zooniverse volunteers classified the galaxy.')
+	var h1 = parseFloat(d3.select('#instructionsStep1Text').node().getBoundingClientRect().height) + yOffset;
+	d3.select('#instructionsStep1Text').style('height', h1 + 'px')
+
+	var instr2 = instr.append('div')
+		.attr('id', 'instructionsStep2')
+		.style('position', 'absolute')
+		.style('top',stepsTop + h1 + 'px')
+		.style('left', stepsLeft + 'px')
+		.style('width',stepsWidth + 'px')
+	instr2.append('div')
+		.attr('id','instructionsStep2N')
+		.style('position','absolute')
+		.style('left',0)
+		.style('top',0)
+		.style('width',1.1*fsN + 'px')
+		.style('text-align', 'center')
+		.style('line-height',fsN +'px')
+		.style('font-size',fsN +'px')
+		.html('&#10103;')
+	instr2.append('div')
+		.attr('id','instructionsStep2Text')
+		.style('position','absolute')
+		.style('left',1.1*fsN+'px')
+		.style('top',0)
+		.style('width',stepsWidth - 1.1*fsN + 'px')
+		.style('text-align', 'left')
+		.style('line-height',1.1*fs + 'px')
+		.style('font-size',fs +'px')
+		.text('Slide the galaxy into either the spiral or smooth side.  These will be my "training set".')
+	var h2 = parseFloat(d3.select('#instructionsStep2Text').node().getBoundingClientRect().height) + yOffset;
+	d3.select('#instructionsStep2Text').style('height', h2 + 'px')
+
+	var instr3 = instr.append('div')
+		.attr('id', 'instructionsStep3')
+		.style('position', 'absolute')
+		.style('top',stepsTop + h1 + h2 + 'px')
+		.style('left', stepsLeft + 'px')
+		.style('width',stepsWidth + 'px')
+	instr3.append('div')
+		.attr('id','instructionsStep3N')
+		.style('position','absolute')
+		.style('left',0)
+		.style('top',0)
+		.style('width',1.1*fsN + 'px')
+		.style('text-align', 'center')
+		.style('line-height',fsN +'px')
+		.style('font-size',fsN +'px')
+		.html('&#10104;')
+	instr3.append('div')
+		.attr('id','instructionsStep3Text')
+		.style('position','absolute')
+		.style('left',1.1*fsN+'px')
+		.style('top',0)
+		.style('width',stepsWidth - 1.1*fsN + 'px')
+		.style('text-align', 'left')
+		.style('line-height',1.1*fs + 'px')
+		.style('font-size',fs +'px')
+		.text('After you have at least 2 images in each category.  Click the "Train Model" button at the bottom, and I\'ll get to work!')	
+	var h3 = parseFloat(d3.select('#instructionsStep3Text').node().getBoundingClientRect().height) + yOffset;
+	d3.select('#instructionsStep3Text').style('height', h3 + 'px')
+
+	var instr4 = instr.append('div')
+		.attr('id', 'instructionsStep4')
+		.style('position', 'absolute')
+		.style('top',stepsTop + h1 + h2 + h3 + 'px')
+		.style('left', stepsLeft + 'px')
+		.style('width',stepsWidth + 'px')
+	instr4.append('div')
+		.attr('id','instructionsStep4N')
+		.style('position','absolute')
+		.style('left',0)
+		.style('top',0)
+		.style('width',1.1*fsN + 'px')
+		.style('text-align', 'center')
+		.style('line-height',fsN +'px')
+		.style('font-size',fsN +'px')
+		.html('&#10105;')
+	instr4.append('div')
+		.attr('id','instructionsStep4Text')
+		.style('position','absolute')
+		.style('left',1.1*fsN+'px')
+		.style('top',0)
+		.style('width',stepsWidth - 1.1*fsN + 'px')
+		.style('text-align', 'left')
+		.style('line-height',1.1*fs + 'px')
+		.style('font-size',fs +'px')
+		.text('After I\'m finished, you will see an "X" over any galaxies where I disagree with the Zooniverse volunteers.  Look at these, and maybe add them to my "training set" to help me learn.  When you\'re ready, click the "Train Model" button again to see if I can do better.')	
+	var h4 = parseFloat(d3.select('#instructionsStep4Text').node().getBoundingClientRect().height) + yOffset;
+	d3.select('#instructionsStep4Text').style('height', h4 + 'px')
+
+
+	var imgWidth = viewerParams.windowWidth - stepsWidth - stepsLeft - 20;
+
+	//https://davidwalsh.name/css-flip
+	var flipper = instr.append('div')
+		.attr('id','instructionsImages')
+		.attr('class','flip-container')
+		.style('position', 'absolute')
+		.style('top',stepsTop + 'px')
+		.style('left', stepsLeft + stepsWidth + 10 + 'px')
+		.style('width',imgWidth + 'px')
+		.append('div')
+			.attr('class', 'flipper')
+
+
+	var instImg1 = flipper.append('div')
+		.attr('id', 'instructionsImage1')
+		.attr('class', 'front')
+		.append('img')
+			.attr('src','static/doc/annotatedScreenShot1.png')
+			.attr('width',imgWidth + 'px')
+
+	var instImg2 = flipper.append('div')
+		.attr('id', 'instructionsImage2')
+		.attr('class', 'back')
+		.append('img')
+			.attr('src','static/doc/annotatedScreenShot2.png')
+			.attr('width',imgWidth + 'px')	
+
+	setInterval(function(){ d3.select("#instructionsImages").node().classList.toggle("flip") }, 15000);
+
+
+		
 }
 function createTrainingSplash(){
 	var fs = 48;
@@ -1019,7 +1186,7 @@ function createTrainingSplash(){
 			.style('font-size',fs+'px')
 			.style('line-height',viewerParams.windowHeight + 'px')
 			.style('text-align', 'center')
-			.text('Training Model')
+			.text("My turn to classify!")
 
 	//make the text fill the screen
 	var x = d3.select('#trainingDivText');
@@ -1236,4 +1403,7 @@ d3.select(window)
 	.on('touchmove', function(){handleImageMoves(event)})
 	.on('touchend', function(){finishImageMoves(event)})
 
+
+//to reset every so often
+//setInterval(function(){ if not active do this : reset(); showSplash('instructions',true)}, 10000);
 
