@@ -1266,16 +1266,17 @@ function createLearnMoreTabs(){
 		.text('What is Machine Learning?')
 		.on('click', function(){showHideTab('MLTab')})
 		.on('touchstart', function(){showHideTab('MLTab')})
-	var wZ = parseFloat(d3.select('#learnMoreMLTab').node().getBoundingClientRect().width);
-	var hZ = parseFloat(d3.select('#learnMoreMLTab').node().getBoundingClientRect().height);
+	var wM = parseFloat(d3.select('#learnMoreMLTab').node().getBoundingClientRect().width);
+	var hM = parseFloat(d3.select('#learnMoreMLTab').node().getBoundingClientRect().height);
 	d3.select('#learnMoreMLTab')
-		.style('width',wZ+'px')
-		.style('top', viewerParams.windowHeight - hZ + 'px')
+		.style('width',wM+'px')
+		.style('top', viewerParams.windowHeight - hM + 'px')
+
 
 	var ml = d3.select('body').append('div')
 		.attr('id','MLTab')
 		.attr('class','tab')
-		.style('height',viewerParams.windowHeight - hZ + 'px')
+		.style('height',viewerParams.windowHeight - hM + 'px')
 		.style('width',viewerParams.windowWidth - 4 + 'px') //to show the border
 		.style('cursor','pointer')
 		.style('position','absolute')
@@ -1285,11 +1286,39 @@ function createLearnMoreTabs(){
 		.on('click',function(){showHideTab('MLTab')})
 		.on('touchstart',function(){showHideTab('MLTab')})
 
+	ml.append('img')
+		.attr('src','static/doc/machine-learning-teal.png')
+		.attr('id','zooImage')
+		.style('position', 'absolute')
+		.style('left', viewerParams.windowWidth/2. + 'px')
+		.style('width',viewerParams.windowWidth/2. + 'px')
+		.style('padding','10px')
+
 	ml.append('div')
+		.attr('id','MLtabText')
+		.style('position', 'absolute')
+		.style('left',0)
+		.style('top',0)
 		.style('line-height',1.1*fs +'px')
+		.style('width',viewerParams.windowWidth/2 + 'px') //to show the border
 		.style('font-size',fs +'px')
 		.style('padding','10px')
-		.text("Machine learning is the science (and art) of programming computers so they can learn from data.")
+		.html('Machine learning is the science (and art) of programming computers so they can learn from data.  Machine Learning is part of the larger field of artificial intelligence (AI) that focuses on teaching computers how to learn without the need to be programmed for specific tasks. <br/> <br/> Our application here uses a machine learning model developed by Google, called TensorFlow.  And more specifically, we are using a "MobileNet" version, which has been developed to work well with images. <br/><br/> A machine learning model requires a "training set".  In this application our training set is a group of images of either spiral or smooth galaxies -- determined by you.  When you "train" the model, the computer uses different features in these training images to "learn" what defines a spiral or smooth galaxy. Afterwards the computer can compare the same features of a new image to classify it as either spiral or smooth on its own.<br/><br/> You will notice that sometimes the computer gets the classification wrong.  Often the computer\'s ability to classify images correctly can be improved by increasing the training set, and including a more diverse set of images in the training set.')
+
+	//not working here for some reason
+	// //make the text fill the screen
+	// var fsM = fs;
+	// var x = d3.select('#MLtabText');
+	// var h = parseFloat(x.node().getBoundingClientRect().height);
+	// var Ntrial = 0
+	// while (h < 0.9*viewerParams.windowHeight && Ntrial < 1000){
+	// 	console.log(h, fsM, viewerParams.windowHeight)
+	// 	fsM+=1
+	// 	x.style('font-size',fsM+'px')
+	// 	w = parseFloat(x.node().getBoundingClientRect().height);
+	// 	Ntrial += 1;
+	// }
+
 }
 
 function showHideTab(id){
@@ -1356,6 +1385,7 @@ function createCountdownSplash(){
 	d3.select('body').append('div')
 		.attr('id','countdownSplash')
 		.attr('class','splash ')
+		.attr('z-index',60)
 		.style('background-color','rgba(50, 50, 50, 0)')
 		.style('width','')
 		.append('div')
