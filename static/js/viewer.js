@@ -998,9 +998,8 @@ function createInstructionsSplash(){
 		.attr('class','splash')
 		.style('width','100%')
 		.style('cursor','pointer')
-		.on('click',function(){
-			showSplash('instructions',false)	
-		})
+		.on('click',function(){showSplash('instructions',false)	})
+		.on('touchstart',function(){showSplash('instructions',false)	})
 		//.text('Instructions')
 
 	var fs = viewerParams.windowHeight/35;
@@ -1021,18 +1020,8 @@ function createInstructionsSplash(){
 		.style('text-align', 'center')
 		.style('line-height',fsN +'px')
 		.style('font-size',fsN +'px')
-		.text("Hi! Please help me classify these galaxies...")
-	var instBottom = instr.append('div')
-		.attr('id', 'instructionsBottom')
-		.style('position', 'absolute')
-		.style('top', viewerParams.windowHeight - fsN - 20 + 'px')
-		.style('left','10px')
-		.style('width',viewerParams.windowWidth - 20 + 'px')
-		.style('height', fsN + 'px')	
-		.style('text-align', 'center')
-		.style('line-height',fsN +'px')
-		.style('font-size',fsN +'px')
-		.text("Touch anywhere to begin.")
+		.text("Hi! Please help me to classify these galaxies...")
+
 
 	var instr1 = instr.append('div')
 		.attr('id', 'instructionsStep1')
@@ -1150,6 +1139,22 @@ function createInstructionsSplash(){
 	var h4 = parseFloat(d3.select('#instructionsStep4Text').node().getBoundingClientRect().height) + yOffset;
 	d3.select('#instructionsStep4Text').style('height', h4 + 'px')
 
+	var instBottom = instr.append('div')
+		.attr('id', 'instructionsBottom')
+		.style('position', 'absolute')
+		// .style('top', viewerParams.windowHeight - fsN - 20 + 'px')
+		// .style('left','10px')
+		// .style('width',viewerParams.windowWidth - 20 + 'px')
+		// .style('text-align', 'center')
+		.style('top',stepsTop + h1 + h2 + h3 + h4 + 'px')
+		.style('left',stepsLeft + 1.1*fsN + 'px')
+		.style('width',stepsWidth + 'px')
+		.style('text-align', 'left')
+		.style('height', fsN + 'px')	
+		.style('line-height',fsN +'px')
+		.style('font-size',fsN +'px')
+		.text("Touch anywhere to begin.")
+
 	var imgWidth = viewerParams.windowWidth - stepsWidth - stepsLeft - 20;
 
 	//https://davidwalsh.name/css-flip
@@ -1181,8 +1186,138 @@ function createInstructionsSplash(){
 	setInterval(function(){ d3.select("#instructionsImages").node().classList.toggle("flip") }, 15000);
 
 
-		}
+}
+function createLearnMoreTabs(){
+	//gray background to cover rest of table
+	d3.select('body').append('div')
+		.attr('id','blankSplash')
+		.attr('class','splash')
+		.style('width','100%')
+		.style('cursor','pointer')
+	showSplash('blankSplash', false)
 
+	var fs = viewerParams.windowHeight/35;
+	var fsL = viewerParams.windowHeight/25;
+	//Zooniverse
+	d3.select('body').append('div')
+		.attr('id','learnMoreZooniverseTab')
+		.attr('class','tab')
+		.style('cursor','pointer')
+		.style('position','absolute')
+		.style('height',1.1*fsL+'px')
+		.style('left','20px')
+		.style('text-align', 'left')
+		.style('line-height',1.1*fsL +'px')
+		.style('font-size',fsL +'px')
+		.style('padding','10px')
+		.style('border', 'solid white')
+		.style('border-width', '2px 2px 0px 2px')
+		.style('border-radius', '0px 20px 0px 0px')
+		.text('What is Zooniverse?')
+		.on('click', function(){showHideTab('zooniverseTab')})
+		.on('touchstart', function(){showHideTab('zooniverseTab')})
+	var wZ = parseFloat(d3.select('#learnMoreZooniverseTab').node().getBoundingClientRect().width);
+	var hZ = parseFloat(d3.select('#learnMoreZooniverseTab').node().getBoundingClientRect().height);
+	d3.select('#learnMoreZooniverseTab')
+		.style('width',wZ+'px')
+		.style('top', viewerParams.windowHeight - hZ + 'px')
+
+	var zoo = d3.select('body').append('div')
+		.attr('id','zooniverseTab')
+		.attr('class','tab')
+		.style('height',viewerParams.windowHeight - hZ + 'px')
+		.style('width',viewerParams.windowWidth - 4 + 'px') //to show the border
+		.style('cursor','pointer')
+		.style('position','absolute')
+		.style('border', '2px solid white')
+		.style('top',viewerParams.windowHeight + 'px')
+		.style('z-index',51)
+		.on('click',function(){showHideTab('zooniverseTab')})
+		.on('touchstart',function(){showHideTab('zooniverseTab')})
+
+	zoo.append('img')
+		.attr('src','static/doc/zooniverse-word-teal.png')
+		.attr('id','zooImage')
+		.style('width',viewerParams.windowWidth/2. + 'px')
+		.style('padding','10px')
+	var hZim = parseFloat(d3.select('#zooImage').node().getBoundingClientRect().height);
+	zoo.append('div')
+		.style('top',hZim + 'px')
+		.style('line-height',1.1*fs +'px')
+		.style('font-size',fs +'px')
+		.style('padding','10px')
+		.text("is home to some of the internet's largest, most popular and most successful citizen science projects. The organization grew from the original Galaxy Zoo project and now hosts dozens of projects which allow volunteers to participate in crowdsourced scientific research. It has headquarters at Oxford University and the Adler Planetarium.")
+
+	//Machine Learning
+	d3.select('body').append('div')
+		.attr('id','learnMoreMLTab')
+		.attr('class','tab')
+		.style('cursor','pointer')
+		.style('position','absolute')
+		.style('height',1.1*fsL+'px')
+		.style('left',60 + wZ + 'px')
+		.style('text-align', 'left')
+		.style('line-height',1.1*fsL +'px')
+		.style('font-size',fsL +'px')
+		.style('padding','10px')
+		.style('border', 'solid white')
+		.style('border-width', '2px 2px 0px 2px')
+		.style('border-radius', '0px 20px 0px 0px')
+		.text('What is Machine Learning?')
+		.on('click', function(){showHideTab('MLTab')})
+		.on('touchstart', function(){showHideTab('MLTab')})
+	var wZ = parseFloat(d3.select('#learnMoreMLTab').node().getBoundingClientRect().width);
+	var hZ = parseFloat(d3.select('#learnMoreMLTab').node().getBoundingClientRect().height);
+	d3.select('#learnMoreMLTab')
+		.style('width',wZ+'px')
+		.style('top', viewerParams.windowHeight - hZ + 'px')
+
+	var ml = d3.select('body').append('div')
+		.attr('id','MLTab')
+		.attr('class','tab')
+		.style('height',viewerParams.windowHeight - hZ + 'px')
+		.style('width',viewerParams.windowWidth - 4 + 'px') //to show the border
+		.style('cursor','pointer')
+		.style('position','absolute')
+		.style('border', '2px solid white')
+		.style('top',viewerParams.windowHeight + 'px')
+		.style('z-index',51)
+		.on('click',function(){showHideTab('MLTab')})
+		.on('touchstart',function(){showHideTab('MLTab')})
+
+	ml.append('div')
+		.style('line-height',1.1*fs +'px')
+		.style('font-size',fs +'px')
+		.style('padding','10px')
+		.text("Machine learning is the science (and art) of programming computers so they can learn from data.")
+}
+
+function showHideTab(id){
+
+
+	//check if already showing
+	show = true
+	var check = parseFloat(d3.select('#learnMore'+id).style('top'))
+	if (check == 0) show = false;
+
+	console.log('showing tab', id, show)
+	var top, topTab;
+
+	if (show){
+		top = parseFloat(d3.select('#learnMore'+id).node().getBoundingClientRect().height);
+		topTab = 0;		
+		showSplash('blankSplash', true)
+	} else {
+		topTab = viewerParams.windowHeight - parseFloat(d3.select('#learnMore'+id).node().getBoundingClientRect().height);
+		top = viewerParams.windowHeight
+		showSplash('blankSplash', false)
+	} 
+
+	d3.select('#'+id).transition().duration(1000)
+		.style('top',top + 'px')
+	d3.select('#LearnMore'+id).transition().duration(1000)
+		.style('top',topTab + 'px')
+}
 function createTrainingSplash(){
 	var fs = 48;
 	d3.select('body').append('div')
@@ -1263,6 +1398,12 @@ function showSplash(id, show){
 				d3.select('#'+id).classed('hidden', true);
 			}
 		})
+	//need to include tabs here
+	if (id == 'instructions'){
+		d3.selectAll('.tab').each(function() {
+			showSplash(d3.select(this).attr('id'),show)
+		})
+	}
 }
 /**
  * Randomly shuffle an array
@@ -1301,6 +1442,7 @@ function reset(){
 
 	populateField();
 }
+
 function init(){
 	//first send the object data to ML
 	var ml_input = {'objData':viewerParams.objData};
@@ -1310,9 +1452,12 @@ function init(){
 		setMLParams(ml_input);
 	}
 
+	//splash screens
 	createInstructionsSplash();
 	createCountdownSplash();
 	createTrainingSplash();
+	createLearnMoreTabs();
+
 	setIdle();
 	setColorMaps();
 	formatBucketText();

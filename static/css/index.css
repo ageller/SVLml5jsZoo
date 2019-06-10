@@ -92,6 +92,15 @@ html, body {
 	overflow:hidden;
 	z-index:50;
 }
+.tab {
+	position:absolute;
+	top:0px;
+	left:0px;
+	background-color: rgba(50,50,50,0.99);
+	color : var(--background-color);
+	overflow:hidden;
+	z-index:50;
+}
 .blink_me {
 	animation: blinker 2s linear infinite;
 }
