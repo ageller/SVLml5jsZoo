@@ -1181,8 +1181,8 @@ function createInstructionsSplash(){
 	setInterval(function(){ d3.select("#instructionsImages").node().classList.toggle("flip") }, 15000);
 
 
-		
-}
+		}
+
 function createTrainingSplash(){
 	var fs = 48;
 	d3.select('body').append('div')
@@ -1214,17 +1214,49 @@ function createTrainingSplash(){
 
 		}
 	}
+}
 
+function createCountdownSplash(){
+	var fs = 48;
+	d3.select('body').append('div')
+		.attr('id','countdownSplash')
+		.attr('class','splash ')
+		.style('background-color','rgba(50, 50, 50, 0)')
+		.style('width','')
+		.append('div')
+			.attr('id','countdownDivText')
+			.style('font-size',fs+'px')
+			.style('line-height',viewerParams.windowHeight + 'px')
+			.style('text-align', 'center')
+			.html("Resetting in <span id='countdownNumber'>3</span>")
+
+	//make the text fill the screen
+	var x = d3.select('#countdownDivText');
+	var w = parseFloat(x.node().getBoundingClientRect().width);
+	var Ntrial = 0
+	while (w < 0.9*viewerParams.windowWidth && Ntrial < 1000){
+		fs+=1
+		x.style('font-size',fs+'px')
+		w = parseFloat(x.node().getBoundingClientRect().width);
+		Ntrial += 1;
+		if (w >= 0.9*viewerParams.windowWidth || Ntrial >= 1000){
+			d3.select('#countdownSplash')
+				.style('width','100%')
+				.classed('hidden', true)
+
+		}
+	}
 }
 function showSplash(id, show){
-	console.log('showSplash',id, show)
 	var op = 0;
 	if (show){
+		console.log('showSplash',id, show)
 		op = 0.99
 		d3.select('#'+id).classed('hidden', false)
 	}
 	d3.select('#'+id).transition().duration(1000)
 		.style('background-color','rgba(50, 50, 50,'+op+')')
+		.style('color','rgba(232, 232, 232,'+op+')') //should use the background color variable in css
 		.style('opacity',op)
 		.on('end',function(){
 			if (!show){
@@ -1279,7 +1311,9 @@ function init(){
 	}
 
 	createInstructionsSplash();
+	createCountdownSplash();
 	createTrainingSplash();
+	setIdle();
 	setColorMaps();
 	formatBucketText();
 	populateField();
@@ -1409,31 +1443,44 @@ function runLocal(){
 
 
 //to reset every so often
-function setIdle(duration=300000){ //5 minutes
-	var timer = setInterval(function(){
-		reset(); 
-		showSplash('instructions',true)
-	},duration);
-	return timer;
+function setIdle(){ 
+	clearInterval(viewerParams.idleTimer);
+	clearInterval(viewerParams.countdownTimer);
+	showSplash('countdownSplash',false)
+	viewerParams.idleTimer = setInterval(function(){
+		console.log('resetting...')
+		var seconds = 0+viewerParams.idleCountdown;
+		d3.select("#countdownNumber").text(seconds);
+		showSplash('countdownSplash',true)
+		viewerParams.countdownTimer = setInterval(function(){
+			console.log("idle countdown...", seconds);
+			d3.select("#countdownNumber").text(seconds);
+			seconds--
+			if (seconds == 0) {
+				clearInterval(viewerParams.countdownTimer);
+				reset(); 
+				showSplash('countdownSplash',false)
+				showSplash('instructions',true)
+			}
+		}, 1000);
+
+
+	},viewerParams.idleDuration);
 }
-function resetIdle(){
-	clearInterval(idle);
-	idle = setIdle();
-}
-var idle = setIdle();
+
 
 
 d3.select(window)
-	.on('mousedown',resetIdle)
+	.on('mousedown',setIdle)
 	.on('mousemove', function(){
 		handleImageMoves(event)
-		resetIdle();
+		setIdle();
 	})
 	.on('mouseup', function(){finishImageMoves(event)})
-	.on('touchstart', resetIdle)
+	.on('touchstart', setIdle)
 	.on('touchmove', function(){
 		handleImageMoves(event)
-		resetIdle();
+		setIdle();
 	})
 	.on('touchend', function(){finishImageMoves(event)})
 

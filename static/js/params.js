@@ -61,6 +61,12 @@ function defineViewerParams(){
 		this.mouseDown = false;
 		this.inHandleMoves = false;
 		this.activeImageIndex = [];
+
+		//for the idle countdown
+		this.idleTimer = null;
+		this.countdownTimer = null;
+		this.idleDuration = 300000//300000 ms = 5 minutes
+		this.idleCountdown = 10; //seconds
 	}
 }
 
