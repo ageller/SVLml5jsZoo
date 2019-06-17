@@ -69,6 +69,7 @@ function populateField(){
 			d.left = d.left0;
 			d.top = d.top0;
 			d.active = false;
+			d.panned = false;
 			d.color = viewerParams.unknownColor;
 			d.dragImageSamples = [];
 			viewerParams.objDataShownIndex.push(i);
@@ -111,14 +112,12 @@ function attachImageEvents(d){
 			d.active = true;
 			addActiveImageIndex(d);
 			viewerParams.mouseDown = true;
-			growImage(d);
 			d3.event.preventDefault();
 		})
 		.on('touchstart', function(){
 			d.active = true;
 			addActiveImageIndex(d);
 			viewerParams.mouseDown = true;
-			growImage(d);
 			d3.event.preventDefault();
 		})
 
@@ -165,6 +164,9 @@ function addImageToField(d){
 
 	attachImageEvents(d);
 
+	//for touch movements
+	addHammer(d);
+
 	// svg.selectAll('circle').data(data).enter()
 	// .append('circle')
 	// 	.attr('cx', function(d){return 2.5*radius*d + offsetX})
@@ -200,6 +202,7 @@ function replaceImageInField(d){
 	dd.left = dd.left0;
 	dd.top = dd.top0;
 	dd.active = false;
+	dd.panned = false;
 	dd.color = viewerParams.unknownColor;
 	dd.dragImageSamples = [];
 	viewerParams.objDataShownIndex.push(viewerParams.objDataShownIndex.length);
@@ -489,7 +492,7 @@ function growImage(d){
 }
 function shrinkImage(d){
 	//cancel any transitions
-	d3.selectAll('#'+getImageID(d)).interrupt(); 
+	if (!d.panned) d3.selectAll('#'+getImageID(d)).interrupt(); 
 	d3.select('#'+getImageID(d)).select('img').interrupt();
 
 	//for some reason, the transitions don't work for the outer div here?
@@ -515,6 +518,64 @@ function shrinkImage(d){
 		.attr('width',viewerParams.imageSize - viewerParams.imageSepFac*viewerParams.imageBorderWidth + 'px')
 	d3.select('#'+getImageID(d)).select('#infoBox').html('')
 	d3.select('#'+getImageID(d)).selectAll('svg').remove();
+
+}
+
+//for touch/mouse events
+function addHammer(d) {
+	var element = document.getElementById(getImageID(d))
+
+	var hammerOptions = {
+	/*
+	touchAction: 'auto'
+	*/
+	};
+
+	var mc = new Hammer.Manager(element, hammerOptions);
+	mc.add(new Hammer.Pan({ threshold: 0, pointers: 0 }));
+	mc.add(new Hammer.Press({ event:"press", time:10 }));
+	mc.on("pan", onPan);
+	mc.on("panend", onPanend)
+	mc.on("press", onPress)
+	mc.on("pressup", onPressup)
+
+	d['hammer'] = mc;
+
+	function onPress(e){
+		growImage(d);
+	}
+	function onPressup(e){
+		shrinkImage(d);
+	}
+
+	function onPan(e) {
+		d.panned = true;
+		if (e.type != "panend"){
+			var position = [e.center.x, Math.min(Math.max(e.center.y, viewerParams.imageGrowSize - viewerParams.imageSize), viewerParams.windowHeight - viewerParams.imageSize)]; //I don't understand the first bit within the max, but it works...
+
+			d.left = position[0];
+			d.top = position[1];
+			d3.select('#'+getImageID(d))
+				.style('left', d.left + 'px')
+				.style('top', d.top + 'px')
+			}
+	}
+
+	function onPanend(e) {
+		var left = parseFloat(d3.select('#'+getImageID(d)).style('left'))
+		var top = parseFloat(d3.select('#'+getImageID(d)).style('top'))	
+		shrinkImage(d);
+
+		var finalX = left + e.velocityX*viewerParams.imageInertiaN;
+		var finalY = top + e.velocityY*viewerParams.imageInertiaN;
+		if (!finalX || !finalY){
+			finalX = left;
+			finalY = top;
+		}
+		finalMove(d, left, top, finalX, finalY, e.velocityX, e.velocityY, viewerParams.imageInertiaN)
+
+		d.active = false;
+	}
 
 }
 
@@ -645,11 +706,12 @@ function handleImageMoves(event){
 	}
 }
 //need to avoid having images running off edge of table and getting lost (without going into bucket)
-function finalMove(d, x0, y0, finalX, finalY, duration){
+function finalMove(d, x0, y0, finalX, finalY, vx, vy, duration){
 	//get equation of line so that we can find the intercept if needed
 	var m = (finalY - y0)/(finalX - x0);
 	var b = y0 - m*x0;
 	var distance = Math.sqrt((finalY - y0)*(finalY - y0) + (finalX - x0)*(finalX - x0));
+
 
 	//check if we end up off screen in y (bounce)
 	var bounce = false;
@@ -668,12 +730,12 @@ function finalMove(d, x0, y0, finalX, finalY, duration){
 
 	//check if we end up in a bucket
 	var bucket = null;
-	if (finalX < viewerParams.windowWidth*viewerParams.bucketSuction && d.dragImageVx < 0){
+	if (finalX < viewerParams.windowWidth*viewerParams.bucketSuction && vx < 0){
 		finalX = Math.min(finalX, -viewerParams.imageSize-viewerParams.imageBorderWidth);
 		viewerParams.spiralImages.push(d);
 		bucket = "spiralText";
 	}
-	if (finalX > viewerParams.windowWidth*(1. - viewerParams.bucketSuction) && d.dragImageVx > 0){
+	if (finalX > viewerParams.windowWidth*(1. - viewerParams.bucketSuction) && vx > 0){
 		finalX = Math.max(finalX, viewerParams.windowWidth);
 		viewerParams.smoothImages.push(d);
 		bucket = "smoothText"
@@ -698,9 +760,9 @@ function finalMove(d, x0, y0, finalX, finalY, duration){
 		.on('end', function(){
 			d.left = finalX;
 			d.top = finalY;
-
+			d.panned = false;
 			if (bounce){
-				finalMove(d, finalX, finalY, finalX2, finalY2, duration - durationUse)
+				finalMove(d, finalX, finalY, finalX2, finalY2, vx, vy, duration - durationUse)
 			}
 			if (bucket != null){
 				d3.select('#'+getImageID(d)).classed('hidden', true)
@@ -897,9 +959,9 @@ function populateStats(img){
 	makeStatsPlot(getImageID(img), getImageID(img)+'SpiralClip', spiral, radius, 1, -2*radius - 1.1*bW, viewerParams.spiralColorMap)
 	makeStatsPlot(getImageID(img), getImageID(img)+'SmoothClip', smooth, radius, 1, viewerParams.imageGrowSize - 1.5*bW, viewerParams.smoothColorMap)
 
-	d3.select('#'+getImageID(img))
-		.on('mouseup',function(){shrinkImage(img)})
-		.on('touchend',function(){shrinkImage(img)})
+	// d3.select('#'+getImageID(img))
+	// 	.on('mouseup',function(){shrinkImage(img)})
+	// 	.on('touchend',function(){shrinkImage(img)})
 
 }
 
@@ -1648,14 +1710,14 @@ function setIdle(){
 d3.select(window)
 	.on('mousedown',setIdle)
 	.on('mousemove', function(){
-		handleImageMoves(event)
+		//handleImageMoves(event)
 		setIdle();
 	})
-	.on('mouseup', function(){finishImageMoves(event)})
+	//.on('mouseup', function(){finishImageMoves(event)})
 	.on('touchstart', setIdle)
 	.on('touchmove', function(){
-		handleImageMoves(event)
+		//handleImageMoves(event)
 		setIdle();
 	})
-	.on('touchend', function(){finishImageMoves(event)})
+	//.on('touchend', function(){finishImageMoves(event)})
 
