@@ -68,8 +68,7 @@ function populateField(){
 			d.top0 = top + yOffset;
 			d.left = d.left0;
 			d.top = d.top0;
-			d.active = false;
-			d.panned = false;
+			d.large = false;
 			d.color = viewerParams.unknownColor;
 			d.dragImageSamples = [];
 			viewerParams.objDataShownIndex.push(i);
@@ -106,22 +105,7 @@ function addActiveImageIndex(d){
 		}
 	});
 }
-function attachImageEvents(d){
-	d3.select('#'+getImageID(d))
-		.on('mousedown', function(){
-			d.active = true;
-			addActiveImageIndex(d);
-			viewerParams.mouseDown = true;
-			d3.event.preventDefault();
-		})
-		.on('touchstart', function(){
-			d.active = true;
-			addActiveImageIndex(d);
-			viewerParams.mouseDown = true;
-			d3.event.preventDefault();
-		})
 
-}
 function addImageToField(d){
 	var div = viewerParams.fieldDiv
 		.append('div')
@@ -162,7 +146,6 @@ function addImageToField(d){
 		.style('text-align','left')
 		.style('color',getComputedStyle(document.documentElement).getPropertyValue('--background-color'))
 
-	attachImageEvents(d);
 
 	//for touch movements
 	addHammer(d);
@@ -201,8 +184,7 @@ function replaceImageInField(d){
 	dd.top0 = minTop - viewerParams.imageSize;
 	dd.left = dd.left0;
 	dd.top = dd.top0;
-	dd.active = false;
-	dd.panned = false;
+	dd.large = false;
 	dd.color = viewerParams.unknownColor;
 	dd.dragImageSamples = [];
 	viewerParams.objDataShownIndex.push(viewerParams.objDataShownIndex.length);
@@ -464,6 +446,7 @@ function getImageID(d){
 	return d.image.split('.').join('').split('/').join('');
 }
 function growImage(d){
+	d.large = true
 	var top = d3.select('#'+getImageID(d)).style('top')
 	var left = d3.select('#'+getImageID(d)).style('left')
 	var s1 = viewerParams.imageGrowSize/30.;
@@ -491,8 +474,9 @@ function growImage(d){
 	
 }
 function shrinkImage(d){
+	d.large = false;
 	//cancel any transitions
-	if (!d.panned) d3.selectAll('#'+getImageID(d)).interrupt(); 
+	d3.selectAll('#'+getImageID(d)).interrupt(); 
 	d3.select('#'+getImageID(d)).select('img').interrupt();
 
 	//for some reason, the transitions don't work for the outer div here?
@@ -533,7 +517,7 @@ function addHammer(d) {
 
 	var mc = new Hammer.Manager(element, hammerOptions);
 	mc.add(new Hammer.Pan({ threshold: 0, pointers: 0 }));
-	mc.add(new Hammer.Press({ event:"press", time:10 }));
+	mc.add(new Hammer.Press({ event:"press", time:100 }));
 	mc.on("pan", onPan);
 	mc.on("panend", onPanend)
 	mc.on("press", onPress)
@@ -549,7 +533,7 @@ function addHammer(d) {
 	}
 
 	function onPan(e) {
-		d.panned = true;
+		if (!d.large) growImage(d)
 		if (e.type != "panend"){
 			var position = [e.center.x, Math.min(Math.max(e.center.y, viewerParams.imageGrowSize - viewerParams.imageSize), viewerParams.windowHeight - viewerParams.imageSize)]; //I don't understand the first bit within the max, but it works...
 
@@ -574,137 +558,11 @@ function addHammer(d) {
 		}
 		finalMove(d, left, top, finalX, finalY, e.velocityX, e.velocityY, viewerParams.imageInertiaN)
 
-		d.active = false;
 	}
 
 }
 
-function connectTouchToImg(event, index){
-	e = event.touches.item(index)
 
-//console.log(touches.length)
-	var dst2 = 1e5;
-	var dUse = null;
-	var ev = null;
-	var imageIndex = null;
-	viewerParams.activeImageIndex.forEach(function(i){
-		var d = viewerParams.objData[i]
-		//find the correct image
-		var x = d.left + viewerParams.imageSize/2.;
-		var y = d.top + viewerParams.imageSize/2.;
-		var x1 = e.clientX;
-		var y1 = e.clientY;
-		var dst2Test = (x - x1)*(x - x1) + (y - y1)*(y - y1);
-
-		if ( dst2Test < dst2 ){
-			dUse = d;
-			dst2 = dst2Test;
-			imageIndex = i;
-			ev = {'clientX':e.clientX, 'clientY':e.clientY, 'timeStamp':event.timeStamp}
-		}
-	});
-	if (dUse == null){
-		console.log('WARNING, no touch match', e, dst2)
-	}
-	return {'event':ev, 'image':dUse, 'imageIndex':imageIndex}
-}
-function getImageFromEvent(event, index=0){
-	var out = {'event':null, 'image':null, 'imageIndex':null}
-	if (event.path){
-		event.path.forEach(function(p){
-			var id = d3.select(p).node().id
-			if (id) {
-				if (id.indexOf('jpg') != -1) {
-					var p1 = id.indexOf('_')+1;
-					var p2 = id.indexOf('jpg');
-					var num = parseFloat(id.substring(p1, p2));
-					viewerParams.activeImageIndex.forEach(function(i){
-						var d = viewerParams.objData[i]
-						if (d.id == num){
-							var ev = event;
-							if (event.touches){
-								ev = event.touches.item(index) //what should I do here?
-							}
-							out = {'event':ev, 'image':d, 'imageIndex':i}
-						}
-					})
-				}
-			}
-
-		})
-	}
-	return out
-}
-function handleImageMoves(event){
-	//this method is not ideal for multi-touch because it will be called for each object that moves and running simultaneoulsy
-
-	if (viewerParams.mouseDown){
-		//if there are touches, then handle multitouch
-		// 1) find the distance of the event(s) from the active object
-		// 2) deal with all the touches
-
-		// can I do this?
-		// activeImg = getImageFromEvent(event);
-		// console.log('have activeImg', activeImg)
-
-		//so that I can loop over events (if multi-touch)
-		activeImg = []
-		if (event.touches){ //for touches, create a list of touch events and the corresponding active image
-			for (var i=0; i < event.touches.length; i+=1) {
-				out = connectTouchToImg(event, i);
-				//out = getImageFromEvent(event, index=i)
-				if (out.image != null) activeImg.push(out)
-			}
-		} else { //regular mouse event, should only have one active object
-			viewerParams.activeImageIndex.forEach(function(i){
-				var d = viewerParams.objData[i]
-				var out = {'event':event, 'image':d, 'imageIndex':i}
-				activeImg = [out];	
-			})
-		}
-
-		//now loop through and handle all of the active images
-		activeImg.forEach(function(handle){
-			var d = viewerParams.objData[handle.imageIndex];
-			if (handle.event != null) {
-				//don't duplicate events
-				var timeStamps = [];
-				d.dragImageSamples.forEach(function(e){
-					timeStamps.push(e.timeStamp)
-				});
-				var check = timeStamps.indexOf(handle.event.timeStamp)
-				if (check == -1) d.dragImageSamples.push(handle.event)
-			}
-			if (d.dragImageSamples.length >2){ //get velocity so that we can give some inertia?
-				d.dragImageSamples.shift();
-				//for MouseEvent
-				var x1 = d.dragImageSamples[0].clientX;
-				var x2 = d.dragImageSamples[1].clientX;
-				var y1 = d.dragImageSamples[0].clientY;
-				var y2 = d.dragImageSamples[1].clientY;
-
-				var dt = d.dragImageSamples[1].timeStamp - d.dragImageSamples[0].timeStamp;
-				//not sure why this would happen, but it does...
-				if (dt <= 0){
-					dt = 10. //not quite sure what to set here
-				}
-				var diffX = x2-x1;
-				var diffY = y2-y1;
-				d.dragImageVx = diffX/dt;
-				d.dragImageVy = diffY/dt;
-
-				var left = parseFloat(d3.select('#'+getImageID(d)).style('left'))
-				var top = parseFloat(d3.select('#'+getImageID(d)).style('top'))
-				var position = [left + diffX, Math.min(Math.max(top + diffY, 0), viewerParams.windowHeight - viewerParams.imageSize)];
-				d.left = position[0];
-				d.top = position[1];
-				d3.select('#'+getImageID(d))
-					.style('left', d.left + 'px')
-					.style('top', d.top + 'px')
-			}
-		});
-	}
-}
 //need to avoid having images running off edge of table and getting lost (without going into bucket)
 function finalMove(d, x0, y0, finalX, finalY, vx, vy, duration){
 	//get equation of line so that we can find the intercept if needed
@@ -760,7 +618,6 @@ function finalMove(d, x0, y0, finalX, finalY, vx, vy, duration){
 		.on('end', function(){
 			d.left = finalX;
 			d.top = finalY;
-			d.panned = false;
 			if (bounce){
 				finalMove(d, finalX, finalY, finalX2, finalY2, vx, vy, duration - durationUse)
 			}
@@ -794,57 +651,6 @@ function finalMove(d, x0, y0, finalX, finalY, vx, vy, duration){
 			}
 
 		})
-}
-function finishImageMoves(event){
-	//this will need to be placed somewhere else for multitouch
-	if (!event.touches){
-		viewerParams.mouseDown = false;
-	}
-
-	var activeImg = [];
-	if (event.touches){ //for touches, create a list of touch events and the corresponding active image
-		for (var i=0; i < event.touches.length; i+=1) {
-			//out = getImageFromEvent(event, index=i)
-			out = connectTouchToImg(event, i);
-			if (out != null) activeImg.push(out.image);
-		}
-		if (activeImg.length == 0) viewerParams.mouseDown = false;
-	}
-
-	viewerParams.activeImageIndex.forEach(function(i){
-		var d = viewerParams.objData[i]
-		//check if the event is still active
-		var done = true
-		activeImg.forEach(function(dd){
-			if (d.id == dd.id) done = false
-		})
-
-		if (done){
-			//if (parseFloat(d3.select('#'+getImageID(d)).style('height')) > viewerParams.imageSize){
-				shrinkImage(d);
-			//}
-
-			var left = parseFloat(d3.select('#'+getImageID(d)).style('left'))
-			var top = parseFloat(d3.select('#'+getImageID(d)).style('top'))	
-
-			var finalX = left + d.dragImageVx*viewerParams.imageInertiaN;
-			var finalY = top + d.dragImageVy*viewerParams.imageInertiaN;
-			if (!finalX || !finalY){
-				finalX = left;
-				finalY = top;
-			}
-			finalMove(d, left, top, finalX, finalY, viewerParams.imageInertiaN)
-
-			d.active = false;
-			d.dragImageSamples = [];
-			if (i >= viewerParams.activeImageIndex.length - 1){ //remove this image from the activeImage array
-				var index = viewerParams.activeImageIndex.indexOf(i);
-				if (index > -1) {
-					viewerParams.activeImageIndex.splice(index, 1);
-				}
-			}
-		}
-	})
 }
 
 
@@ -1574,7 +1380,6 @@ function setViewerParams(vars){
 				viewerParams.objDataShownIndex.forEach(function(jj){
 					var dd = viewerParams.objData[jj]
 					dd.results = viewerParams.objDataShownClassifications[jj];
-					attachImageEvents(dd);
 					if (jj == viewerParams.objDataShownIndex.length -1){
 						showSplash('trainingSplash', false)
 						showMLResults();
@@ -1709,15 +1514,7 @@ function setIdle(){
 
 d3.select(window)
 	.on('mousedown',setIdle)
-	.on('mousemove', function(){
-		//handleImageMoves(event)
-		setIdle();
-	})
-	//.on('mouseup', function(){finishImageMoves(event)})
+	.on('mousemove', setIdle)
 	.on('touchstart', setIdle)
-	.on('touchmove', function(){
-		//handleImageMoves(event)
-		setIdle();
-	})
-	//.on('touchend', function(){finishImageMoves(event)})
+	.on('touchmove', setIdle)
 
