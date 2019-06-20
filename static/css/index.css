@@ -56,7 +56,14 @@ html, body {
 	background-color:var(--button-background-color);
 	cursor: pointer;
 }
-
+.textOutline
+{
+	text-shadow:
+	-1px -1px 0 #000,
+	1px -1px 0 #000,
+	-1px 1px 0 #000,
+	1px 1px 0 #000;  
+}
 
 .buttonDiv{
 	/*padding: 2px;*/

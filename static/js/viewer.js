@@ -1,7 +1,6 @@
 //the text for the budgets
 function formatBucketText(){
 
-
 	d3.select('body').append('img')
 		.attr('id', 'backgroundImg')
 		.attr('src','static/doc/Whirlpool_IC2006_blend_HD.png')
@@ -26,8 +25,10 @@ function formatBucketText(){
 
 	d3.select('body').append('div')
 		.attr('id','spiralText')
+		.attr('class','textOutline')
 		.text('Spiral')
 		.style('font-size',viewerParams.bucketWidth*0.5 + 'px')
+		.attr('font-size',viewerParams.bucketWidth*0.5 + 'px')
 		.style('position', 'absolute')
 		.style('color',viewerParams.spiralColor)
 		.style('transform','rotate(90deg)')
@@ -36,6 +37,7 @@ function formatBucketText(){
 
 	var w = parseFloat(d3.select('#spiralText').node().getBoundingClientRect().width);
 	d3.select('#spiralText')
+		.attr('left',-w/2. -20+ 'px')  //why is this 20 and I use 10 below
 		.style('left',-w/2. -20+ 'px')  //why is this 20 and I use 10 below
 		.style('line-height',viewerParams.windowHeight + 'px')
 		.style('text-align','center')
@@ -43,7 +45,9 @@ function formatBucketText(){
 
 	d3.select('body').append('div')
 		.attr('id','smoothText')
+		.attr('class','textOutline')
 		.text('Smooth')
+		.attr('font-size',viewerParams.bucketWidth*0.5 + 'px')
 		.style('font-size',viewerParams.bucketWidth*0.5 + 'px')
 		.style('position', 'absolute')
 		.style('color',viewerParams.smoothColor)
@@ -53,6 +57,7 @@ function formatBucketText(){
 
 	var w = parseFloat(d3.select('#smoothText').node().getBoundingClientRect().width);
 	d3.select('#smoothText')
+		.attr('left',viewerParams.windowWidth - 2.*w - 10 + 'px') //don't understand this
 		.style('left',viewerParams.windowWidth - 2.*w - 10 + 'px') //don't understand this
 		.style('line-height',viewerParams.windowHeight + 'px')
 		.style('text-align','center')
@@ -532,6 +537,29 @@ function shrinkImage(d){
 
 }
 
+function growBucket(bucket, growFac=1.2){
+	tSize = parseFloat(d3.select('#'+bucket).attr('font-size'));
+	left = parseFloat(d3.select('#'+bucket).attr('left'));
+	if (bucket == "spiralText"){
+		leftOffset = left - tSize/3.; //don't understand this offset
+	} else {
+		leftOffset = left - tSize/3.;
+	}
+	d3.select('#'+bucket).transition().duration(200)
+		.style('font-size',tSize*growFac + 'px')
+		.style('left',leftOffset + 'px')
+		.on('end',function(){					
+			d3.select('#'+bucket).transition().duration(200)
+				.style('font-size',tSize + 'px')
+				.style('left',left + 'px')
+			if (bucket == "spiralText"){
+				d3.select('#spiralN').text(viewerParams.spiralImages.length)
+			} else {
+				d3.select('#smoothN').text(viewerParams.smoothImages.length)
+			}
+
+		});
+}
 //for touch/mouse events
 function addHammer(d) {
 	var element = document.getElementById(getImageID(d))
@@ -580,7 +608,7 @@ function addHammer(d) {
 			finalX = left;
 			finalY = top;
 		}
-		finalMove(d, left, top, finalX, finalY, e.velocityX, e.velocityY, viewerParams.imageInertiaN)
+		finalMove(d, finalX, finalY, viewerParams.imageInertiaN)
 
 	}
 
@@ -588,103 +616,68 @@ function addHammer(d) {
 function moveImage(e, d){
 	var position = [e.center.x, Math.min(Math.max(e.center.y, viewerParams.imageGrowSize - viewerParams.imageSize), viewerParams.windowHeight - viewerParams.imageSize)]; //I don't understand the first bit within the max, but it works...
 
-	d.left = position[0];
-	d.top = position[1];
-	console.log("moving", position)
-	d3.select('#'+getImageID(d))
-		.style('left', d.left + 'px')
-		.style('top', d.top + 'px')
-	
+	//sometimes there is a mistake somewhere?
+	if (position[0] != 0 && position[1] != 0){
+		d.left = position[0];
+		d.top = position[1];
+		d3.select('#'+getImageID(d))
+			.style('left', d.left + 'px')
+			.style('top', d.top + 'px')
+	}
 }
 
-//need to avoid having images running off edge of table and getting lost (without going into bucket)
-//also the bounce is too fast when the item is slowing down
-function finalMove(d, x0, y0, finalX, finalY, vx, vy, duration){
-	//get equation of line so that we can find the intercept if needed
-	var m = (finalY - y0)/(finalX - x0);
-	var b = y0 - m*x0;
-	var distance = Math.sqrt((finalY - y0)*(finalY - y0) + (finalX - x0)*(finalX - x0));
-
-
-	//check if we end up off screen in y (bounce)
-	var bounce = false;
-	var finalX2 = finalX;
-	var finalY2 = finalY;
-	if (finalY < 0){
-		finalY2 = -1.*finalY;
-		finalY = 0;
-		bounce = true
-	}
-	if (finalY > viewerParams.windowHeight - viewerParams.imageSize){
-		finalY2 = finalY - (viewerParams.windowHeight - viewerParams.imageSize);
-		finalY = viewerParams.windowHeight - viewerParams.imageSize;
-		bounce = true
-	}
-
-	//check if we end up in a bucket
+function checkBucket(xpos, d){
 	var bucket = null;
-	if (finalX < viewerParams.windowWidth*viewerParams.bucketSuction && vx < 0){
-		finalX = Math.min(finalX, -viewerParams.imageSize-viewerParams.imageBorderWidth);
-		viewerParams.spiralImages.push(d);
+	if (xpos <= viewerParams.windowWidth*viewerParams.bucketSuction){ //spiral bucket
 		bucket = "spiralText";
 	}
-	if (finalX > viewerParams.windowWidth*(1. - viewerParams.bucketSuction) && vx > 0){
-		finalX = Math.max(finalX, viewerParams.windowWidth);
-		viewerParams.smoothImages.push(d);
-		bucket = "smoothText"
+	if (xpos >= viewerParams.windowWidth*(1. - viewerParams.bucketSuction) ){ //smooth bucket
+		bucket = "smoothText";
 	}
-	if (bucket){
-		bounce = false;
+	if (bucket != null){ 
 		viewerParams.modelUpdateNeeded = true;
+		var checkSpiral = viewerParams.spiralImages.indexOf(d);
+		var checkSmooth = viewerParams.smoothImages.indexOf(d);
+		if (checkSpiral == -1 && checkSmooth == -1){
+			if (bucket == "spiralText") viewerParams.spiralImages.push(d);
+			if (bucket == "smoothText") viewerParams.smoothImages.push(d);
+			growBucket(bucket);
+			replaceImageInField(d);		
+		}
+		return true;
+	} else {
+		return false
 	}
+}
+
+
+function finalMove(d, finalX, finalY, duration, easeFunc = d3.easePolyOut.exponent(1.5)){
 
 	var easeFunc = d3.easePolyOut.exponent(1.5);
-	var durationUse = duration;
-	if (bounce){
-		easeFunc = d3.easeLinear;
-		finalX = (finalY - b)/m;
-		distance2 = Math.sqrt((finalY - y0)*(finalY - y0) + (finalX - x0)*(finalX - x0));
-		durationUse *= distance2/distance;
-	}
 
-	d3.select('#'+getImageID(d)).transition().ease(easeFunc).duration(durationUse)
-		.style('left', finalX + 'px')
-		.style('top', finalY + 'px')
+	var inBucket = false;
+	d3.select('#'+getImageID(d)).transition().ease(easeFunc).duration(duration)
+	    .tween("position", function(dd) {
+			var div = d3.select(this);
+			var startLeft = parseInt(div.style('left'));  
+			var startTop = parseInt(div.style('top'));
+			var xInterp = d3.interpolateRound(startLeft, finalX);
+			var yInterp = d3.interpolateRound(startTop, finalY);
+			return function(t) {       
+				d.left = xInterp(t);
+				d.top = Math.abs(yInterp(t)); 
+				if (Math.abs(yInterp(t)) > (viewerParams.windowHeight - viewerParams.imageSize)){
+					d.top = 2.*(viewerParams.windowHeight - viewerParams.imageSize) - Math.abs(yInterp(t));
+				}    
+				div.style("left", d.left + "px");
+				div.style("top", d.top + "px");
+				inBucket = checkBucket(xInterp(t), d);
+			};
+		})
 		.on('end', function(){
-			d.left = finalX;
-			d.top = finalY;
-			if (bounce){
-				finalMove(d, finalX, finalY, finalX2, finalY2, vx, vy, duration - durationUse)
-			}
-			if (bucket != null){
-				d3.select('#'+getImageID(d)).classed('hidden', true)
-				var growFac = 1.2;
-				tSize = parseFloat(d3.select('#'+bucket).style('font-size'));
-				left = parseFloat(d3.select('#'+bucket).style('left'));
-				if (bucket == "spiralText"){
-					leftOffset = left - tSize/3.; //don't understand this offset
-				} else {
-					leftOffset = left - tSize/3.;
-				}
-				d3.select('#'+bucket).transition().duration(200)
-					.style('font-size',tSize*growFac + 'px')
-					.style('left',leftOffset + 'px')
-					.on('end',function(){					
-						d3.select('#'+bucket).transition().duration(200)
-							.style('font-size',tSize + 'px')
-							.style('left',left + 'px')
-						if (bucket == "spiralText"){
-							d3.select('#spiralN').text(viewerParams.spiralImages.length)
-						} else {
-							d3.select('#smoothN').text(viewerParams.smoothImages.length)
-						}
-
-					});
-					replaceImageInField(d);
-			} else {
+			if (!inBucket){
 				d3.select('#'+getImageID(d)).style('z-index',2)
 			}
-
 		})
 }
 
@@ -749,6 +742,7 @@ function makeStatsPlot(id, clipID, value, radius, strokeWidth, offsetX, colorMap
 
 	// svg.attr('clip-path', 'url(#'+clipID+')');
 }
+
 //for galaxy information
 function showGalaxyInfo(img){
 
@@ -784,6 +778,7 @@ function showGalaxyInfo(img){
 		.style('left','2px')
 		.style('top',viewerParams.imageGrowSize - viewerParams.imageBorderWidth - h - 6  + 'px');//why do I need the extra offset here??
 }
+
 function populateStats(img){
 
 	var radius = (viewerParams.imageGrowSize/10.)/2.5;
@@ -878,8 +873,8 @@ function setColorMap(){
 		.domain([0, step(2), step(3), step(4), step(5), step(6), step(7), 1])
 		.range(['#d73027', '#f46d43', '#fdae61', '#fee08b', '#d9ef8b', '#a6d96a', '#66bd63', '#1a9850'])
 		.interpolate(d3.interpolateHcl); //interpolateHsl interpolateHcl interpolateRgb
-
 }
+
 function setColorMaps(){
 
 	viewerParams.smoothColorMap= d3.scaleLinear()
@@ -1088,8 +1083,8 @@ function createInstructionsSplash(){
 
 	setInterval(function(){ d3.select("#instructionsImages").node().classList.toggle("flip") }, 15000);
 
-
 }
+
 function createLearnMoreTabs(){
 	//gray background to cover rest of table
 	d3.select('body').append('div')
@@ -1250,6 +1245,7 @@ function showHideTab(id){
 	d3.select('#LearnMore'+id).transition().duration(1000)
 		.style('top',topTab + 'px')
 }
+
 function createTrainingSplash(){
 	var fs = 48;
 	d3.select('body').append('div')
@@ -1315,6 +1311,7 @@ function createCountdownSplash(){
 		}
 	}
 }
+
 function showSplash(id, show){
 	var op = 0;
 	if (show){
@@ -1338,6 +1335,7 @@ function showSplash(id, show){
 		})
 	}
 }
+
 /**
  * Randomly shuffle an array
  * https://stackoverflow.com/a/2450976/1293256
@@ -1364,6 +1362,7 @@ var shuffle = function(array){
 	return array;
 
 };
+
 function reset(){
 	viewerParams.spiralImages=[];
 	viewerParams.smoothImages=[];
@@ -1535,9 +1534,7 @@ function setIdle(){
 			console.log('resetting...')
 			d3.select("#countdownNumber").text(seconds);
 			showSplash('countdownSplash',true)
-		}
-		viewerParams.countdownTimer = setInterval(function(){
-			if (!viewerParams.inStartup) {
+			viewerParams.countdownTimer = setInterval(function(){
 				console.log("idle countdown...", seconds);
 				d3.select("#countdownNumber").text(seconds);
 				seconds--
@@ -1548,8 +1545,8 @@ function setIdle(){
 					showSplash('instructions',true);
 					viewerParams.inStartup = true	
 				}
-			}
-		}, 1000);
+			}, 1000);
+		}
 
 
 	},viewerParams.idleDuration);
