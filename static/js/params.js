@@ -57,10 +57,9 @@ function defineViewerParams(){
 		this.nSmoothAgree = 0.;
 		this.sSpiralAgree = 0.;
 
-		//check if the mouse is down or if touch is active 
-		this.mouseDown = false;
-		this.inHandleMoves = false;
-		this.activeImageIndex = [];
+		//limit the number of images that can be touched
+		this.nActiveImages = 0;
+		this.maxActiveImages = 2;
 
 		//for the idle countdown
 		this.idleTimer = null;

@@ -130,13 +130,6 @@ function populateField(){
 	})
 }
 
-function addActiveImageIndex(d){
-	viewerParams.objDataShownIndex.forEach(function(i){
-		if (viewerParams.objData[i].id == d.id){
-			viewerParams.activeImageIndex.push(i);
-		}
-	});
-}
 
 function addImageToField(d){
 	var div = viewerParams.fieldDiv
@@ -478,6 +471,7 @@ function getImageID(d){
 	return d.image.split('.').join('').split('/').join('');
 }
 function growImage(d){
+	viewerParams.nActiveImages += 1;
 	d.large = true
 	var top = d3.select('#'+getImageID(d)).style('top')
 	var left = d3.select('#'+getImageID(d)).style('left')
@@ -507,6 +501,8 @@ function growImage(d){
 }
 function shrinkImage(d){
 	d.large = false;
+	viewerParams.nActiveImages = Math.max(viewerParams.nActiveImages-1, 0);
+
 	//cancel any transitions
 	d3.selectAll('#'+getImageID(d)).interrupt(); 
 	d3.select('#'+getImageID(d)).select('img').interrupt();
@@ -585,16 +581,19 @@ function addHammer(d) {
 	function onPress(e){
 		growImage(d);
 		moveImage(e, d);
-
 	}
 
 	function onPressup(e){
 		shrinkImage(d);
+		viewerParams.nActiveImages = Math.max(viewerParams.nActiveImages-1, 0);
+
 	}
 
 	function onPan(e) {
-		if (!d.large) growImage(d)
-		if (e.type != "panend") moveImage(e, d)
+		if (viewerParams.nActiveImages <= viewerParams.maxActiveImages){
+			if (!d.large) growImage(d);
+			if (e.type != "panend") moveImage(e, d);
+		}
 	}
 
 	function onPanend(e) {
@@ -798,9 +797,6 @@ function populateStats(img){
 	makeStatsPlot(getImageID(img), getImageID(img)+'SpiralClip', spiral, radius, 1, -2*radius - 1.1*bW, viewerParams.spiralColorMap)
 	makeStatsPlot(getImageID(img), getImageID(img)+'SmoothClip', smooth, radius, 1, viewerParams.imageGrowSize - 1.5*bW, viewerParams.smoothColorMap)
 
-	// d3.select('#'+getImageID(img))
-	// 	.on('mouseup',function(){shrinkImage(img)})
-	// 	.on('touchend',function(){shrinkImage(img)})
 
 }
 
