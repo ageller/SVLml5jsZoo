@@ -472,6 +472,7 @@ function getImageID(d){
 }
 function growImage(d){
 	viewerParams.nActiveImages += 1;
+	console.log("n active", viewerParams.nActiveImages)
 	d.large = true
 	var top = d3.select('#'+getImageID(d)).style('top')
 	var left = d3.select('#'+getImageID(d)).style('left')
