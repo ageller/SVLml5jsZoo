@@ -65,7 +65,8 @@ function defineViewerParams(){
 		//for the idle countdown
 		this.idleTimer = null;
 		this.countdownTimer = null;
-		this.idleDuration = 300000//300000 ms = 5 minutes
+		this.holdIdle = null;
+		this.idleDuration = 60000//300000 ms = 5 minutes, currently using 60 seconds
 		this.idleCountdown = 10; //seconds
 	}
 }

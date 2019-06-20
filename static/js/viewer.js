@@ -564,6 +564,7 @@ function addHammer(d) {
 
 
 //need to avoid having images running off edge of table and getting lost (without going into bucket)
+//also the bounce is too fast when the item is slowing down
 function finalMove(d, x0, y0, finalX, finalY, vx, vy, duration){
 	//get equation of line so that we can find the intercept if needed
 	var m = (finalY - y0)/(finalX - x0);
@@ -1383,6 +1384,7 @@ function setViewerParams(vars){
 					if (jj == viewerParams.objDataShownIndex.length -1){
 						showSplash('trainingSplash', false)
 						showMLResults();
+						clearInterval(viewerParams.holdIdle);
 					}
 				})
 	
@@ -1395,6 +1397,10 @@ function setViewerParams(vars){
 }
 
 function sendToML(){
+	viewerParams.holdIdle = setInterval(function(){
+		setIdle();
+	}, viewerParams.idleDuration/2.);
+
 	//only send if there are enough images in the buckets
 	if (viewerParams.spiralImages.length >= 2 && viewerParams.smoothImages.length >= 2){
 		showSplash('trainingSplash', true)
