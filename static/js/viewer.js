@@ -525,24 +525,21 @@ function addHammer(d) {
 
 	d['hammer'] = mc;
 
+
+
 	function onPress(e){
 		growImage(d);
+		moveImage(e, d);
+
 	}
+
 	function onPressup(e){
 		shrinkImage(d);
 	}
 
 	function onPan(e) {
 		if (!d.large) growImage(d)
-		if (e.type != "panend"){
-			var position = [e.center.x, Math.min(Math.max(e.center.y, viewerParams.imageGrowSize - viewerParams.imageSize), viewerParams.windowHeight - viewerParams.imageSize)]; //I don't understand the first bit within the max, but it works...
-
-			d.left = position[0];
-			d.top = position[1];
-			d3.select('#'+getImageID(d))
-				.style('left', d.left + 'px')
-				.style('top', d.top + 'px')
-			}
+		if (e.type != "panend") moveImage(e, d)
 	}
 
 	function onPanend(e) {
@@ -561,7 +558,16 @@ function addHammer(d) {
 	}
 
 }
+function moveImage(e, d){
+	var position = [e.center.x, Math.min(Math.max(e.center.y, viewerParams.imageGrowSize - viewerParams.imageSize), viewerParams.windowHeight - viewerParams.imageSize)]; //I don't understand the first bit within the max, but it works...
 
+	d.left = position[0];
+	d.top = position[1];
+	d3.select('#'+getImageID(d))
+		.style('left', d.left + 'px')
+		.style('top', d.top + 'px')
+	
+}
 
 //need to avoid having images running off edge of table and getting lost (without going into bucket)
 //also the bounce is too fast when the item is slowing down
@@ -1494,33 +1500,41 @@ function runLocal(){
 function setIdle(){ 
 	clearInterval(viewerParams.idleTimer);
 	clearInterval(viewerParams.countdownTimer);
-	showSplash('countdownSplash',false)
+	if (!viewerParams.inStartup) showSplash('countdownSplash',false)
 	viewerParams.idleTimer = setInterval(function(){
-		console.log('resetting...')
-		var seconds = 0+viewerParams.idleCountdown;
-		d3.select("#countdownNumber").text(seconds);
-		showSplash('countdownSplash',true)
-		viewerParams.countdownTimer = setInterval(function(){
-			console.log("idle countdown...", seconds);
+		if (!viewerParams.inStartup) {
+			console.log('resetting...')
+			var seconds = 0+viewerParams.idleCountdown;
 			d3.select("#countdownNumber").text(seconds);
-			seconds--
-			if (seconds == 0) {
-				clearInterval(viewerParams.countdownTimer);
-				reset(); 
-				showSplash('countdownSplash',false)
-				showSplash('instructions',true)
+			showSplash('countdownSplash',true)
+		}
+		viewerParams.countdownTimer = setInterval(function(){
+			if (!viewerParams.inStartup) {
+				console.log("idle countdown...", seconds);
+				d3.select("#countdownNumber").text(seconds);
+				seconds--
+				if (seconds == 0) {
+					clearInterval(viewerParams.countdownTimer);
+					reset(); 
+					showSplash('countdownSplash',false);
+					showSplash('instructions',true);
+				}
 			}
+			viewerParams.inStartup = true	
 		}, 1000);
 
 
 	},viewerParams.idleDuration);
 }
 
-
+function cancelIdle(){
+	setIdle();
+	viewerParams.inStartup = false
+}
 
 d3.select(window)
-	.on('mousedown',setIdle)
-	.on('mousemove', setIdle)
-	.on('touchstart', setIdle)
-	.on('touchmove', setIdle)
+	.on('mousedown',cancelIdle)
+	.on('mousemove', cancelIdle)
+	.on('touchstart', cancelIdle)
+	.on('touchmove', cancelIdle)
 
