@@ -1227,7 +1227,7 @@ function showHideTab(id){
 	var check = parseFloat(d3.select('#learnMore'+id).style('top'))
 	if (check == 0) show = false;
 
-	console.log('showing tab', id, show)
+	console.log('showing tab', id, show, viewerParams.movingTab)
 	var top, topTab;
 
 	if (show){
