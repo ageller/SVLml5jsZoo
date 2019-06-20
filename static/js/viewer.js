@@ -580,37 +580,38 @@ function addHammer(d) {
 
 
 	function onPress(e){
-		if (viewerParams.nActiveImages <= viewerParams.maxActiveImages){
+		if (viewerParams.nActiveImages < viewerParams.maxActiveImages){
 			growImage(d);
 			moveImage(e, d);
 		}
 	}
 
 	function onPressup(e){
-		shrinkImage(d);
-		viewerParams.nActiveImages = Math.max(viewerParams.nActiveImages-1, 0);
+		if (d.large) shrinkImage(d);
 
 	}
 
 	function onPan(e) {
-		if (viewerParams.nActiveImages <= viewerParams.maxActiveImages){
+		if (viewerParams.nActiveImages < viewerParams.maxActiveImages){
 			if (!d.large) growImage(d);
 			if (e.type != "panend") moveImage(e, d);
 		}
 	}
 
 	function onPanend(e) {
-		var left = parseFloat(d3.select('#'+getImageID(d)).style('left'))
-		var top = parseFloat(d3.select('#'+getImageID(d)).style('top'))	
-		shrinkImage(d);
+		if (d.large){
+			var left = parseFloat(d3.select('#'+getImageID(d)).style('left'))
+			var top = parseFloat(d3.select('#'+getImageID(d)).style('top'))	
+			shrinkImage(d);
 
-		var finalX = left + e.velocityX*viewerParams.imageInertiaN;
-		var finalY = top + e.velocityY*viewerParams.imageInertiaN;
-		if (!finalX || !finalY){
-			finalX = left;
-			finalY = top;
+			var finalX = left + e.velocityX*viewerParams.imageInertiaN;
+			var finalY = top + e.velocityY*viewerParams.imageInertiaN;
+			if (!finalX || !finalY){
+				finalX = left;
+				finalY = top;
+			}
+			finalMove(d, finalX, finalY, viewerParams.imageInertiaN);
 		}
-		finalMove(d, finalX, finalY, viewerParams.imageInertiaN)
 
 	}
 
