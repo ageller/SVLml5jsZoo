@@ -636,11 +636,12 @@ function checkBucket(xpos, d){
 	}
 	if (bucket != null){ 
 		viewerParams.modelUpdateNeeded = true;
-		var checkSpiral = viewerParams.spiralImages.indexOf(d);
-		var checkSmooth = viewerParams.smoothImages.indexOf(d);
+		var dAdd = {"image":d.image, "id", d.id}
+		var checkSpiral = viewerParams.spiralImages.indexOf(dAdd);
+		var checkSmooth = viewerParams.smoothImages.indexOf(dAdd);
 		if (checkSpiral == -1 && checkSmooth == -1){
-			if (bucket == "spiralText") viewerParams.spiralImages.push(d);
-			if (bucket == "smoothText") viewerParams.smoothImages.push(d);
+			if (bucket == "spiralText") viewerParams.spiralImages.push(dAdd);
+			if (bucket == "smoothText") viewerParams.smoothImages.push(dAdd);
 			growBucket(bucket);
 			replaceImageInField(d);		
 		}
