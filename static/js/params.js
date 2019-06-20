@@ -24,7 +24,7 @@ function defineViewerParams(){
 		this.useIndex = 0;
 		this.colorMap;
 
-		this.bucketWidth = 150; //width of the divs for spiral and round
+		this.bucketWidth = 250; //width of the divs for spiral and round
 		this.nImageHeight = 10; //number of images to fit in height of window
 		this.imageBorderWidth = 4;
 		this.imageSepFac = 2.5 ;//2 would be right next to eachother

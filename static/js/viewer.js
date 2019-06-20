@@ -1,12 +1,37 @@
 //the text for the budgets
 function formatBucketText(){
+
+
+	d3.select('body').append('img')
+		.attr('id', 'backgroundImg')
+		.attr('src','static/doc/Whirlpool_IC2006_blend_HD.png')
+		.attr('height',viewerParams.windowHeight + 'px')
+		.style('position', 'absolute')
+		.style('top','0px')
+		.style('left','0px')
+		.style('z-index','0')
+		.on('load', function(){
+			var w = parseFloat(d3.select('#backgroundImg').node().getBoundingClientRect().width);
+			if (w < viewerParams.windowWidth){
+				d3.select('body').append('img')
+					.attr('id', 'backgroundImg2')
+					.attr('src','static/doc/Whirlpool_IC2006_blend_HD.png')
+					.attr('height',viewerParams.windowHeight + 'px')
+					.style('position', 'absolute')
+					.style('top','0px')
+					.style('z-index','0')
+					.style('left', viewerParams.windowWidth - w + 'px')
+				}
+		});
+
 	d3.select('body').append('div')
 		.attr('id','spiralText')
 		.text('Spiral')
-		.style('font-size',viewerParams.bucketWidth*0.75 + 'px')
+		.style('font-size',viewerParams.bucketWidth*0.5 + 'px')
 		.style('position', 'absolute')
 		.style('color',viewerParams.spiralColor)
 		.style('transform','rotate(90deg)')
+		.style('z-index','1')
 		.style('margin','20px')
 
 	var w = parseFloat(d3.select('#spiralText').node().getBoundingClientRect().width);
@@ -15,12 +40,14 @@ function formatBucketText(){
 		.style('line-height',viewerParams.windowHeight + 'px')
 		.style('text-align','center')
 
+
 	d3.select('body').append('div')
 		.attr('id','smoothText')
 		.text('Smooth')
-		.style('font-size',viewerParams.bucketWidth*0.75 + 'px')
+		.style('font-size',viewerParams.bucketWidth*0.5 + 'px')
 		.style('position', 'absolute')
 		.style('color',viewerParams.smoothColor)
+		.style('z-index','1')
 		.style('transform','rotate(-90deg)')
 		.style('margin','20px')
 
@@ -563,6 +590,7 @@ function moveImage(e, d){
 
 	d.left = position[0];
 	d.top = position[1];
+	console.log("moving", position)
 	d3.select('#'+getImageID(d))
 		.style('left', d.left + 'px')
 		.style('top', d.top + 'px')
@@ -1502,9 +1530,9 @@ function setIdle(){
 	clearInterval(viewerParams.countdownTimer);
 	showSplash('countdownSplash',false)
 	viewerParams.idleTimer = setInterval(function(){
+		var seconds = 0+viewerParams.idleCountdown;
 		if (!viewerParams.inStartup) {
 			console.log('resetting...')
-			var seconds = 0+viewerParams.idleCountdown;
 			d3.select("#countdownNumber").text(seconds);
 			showSplash('countdownSplash',true)
 		}
@@ -1518,9 +1546,9 @@ function setIdle(){
 					reset(); 
 					showSplash('countdownSplash',false);
 					showSplash('instructions',true);
+					viewerParams.inStartup = true	
 				}
 			}
-			viewerParams.inStartup = true	
 		}, 1000);
 
 
