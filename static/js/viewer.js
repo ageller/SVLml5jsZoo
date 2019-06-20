@@ -579,8 +579,10 @@ function addHammer(d) {
 
 
 	function onPress(e){
-		growImage(d);
-		moveImage(e, d);
+		if (viewerParams.nActiveImages <= viewerParams.maxActiveImages){
+			growImage(d);
+			moveImage(e, d);
+		}
 	}
 
 	function onPressup(e){
