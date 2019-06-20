@@ -59,7 +59,7 @@ function defineViewerParams(){
 
 		//limit the number of images that can be touched
 		this.nActiveImages = 0;
-		this.maxActiveImages = 2;
+		this.maxActiveImages = 4;
 
 		//for the idle countdown
 		this.idleTimer = null;
