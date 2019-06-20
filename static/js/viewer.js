@@ -636,9 +636,11 @@ function checkBucket(xpos, d){
 	}
 	if (bucket != null){ 
 		viewerParams.modelUpdateNeeded = true;
-		var dAdd = {"image":d.image, "id", d.id}
-		var checkSpiral = viewerParams.spiralImages.indexOf(dAdd);
-		var checkSmooth = viewerParams.smoothImages.indexOf(dAdd);
+		var dAdd = {"image":d.image, "id":d.id};
+		// var checkSpiral = viewerParams.spiralImages.indexOf(dAdd);
+		// var checkSmooth = viewerParams.smoothImages.indexOf(dAdd);
+		var checkSpiral = viewerParams.spiralImages.map(function(e) { return e.id; }).indexOf(dAdd.id);
+		var checkSmooth = viewerParams.smoothImages.map(function(e) { return e.id; }).indexOf(dAdd.id);
 		if (checkSpiral == -1 && checkSmooth == -1){
 			if (bucket == "spiralText") viewerParams.spiralImages.push(dAdd);
 			if (bucket == "smoothText") viewerParams.smoothImages.push(dAdd);
