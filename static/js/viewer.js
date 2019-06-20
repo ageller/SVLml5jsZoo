@@ -1447,7 +1447,7 @@ function sendToML(){
 					};
 		if (viewerParams.usingSocket){
 			console.log('sending to ML', ml_input)
-			socketParams.socket.emit('ml_input',JSON.stringify(ml_input));
+			socketParams.socket.emit('ml_input',ml_input);
 		} else {
 			setMLParams(ml_input);
 		}
