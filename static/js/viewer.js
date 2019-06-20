@@ -1233,15 +1233,14 @@ function showHideTab(id){
 	if (show){
 		top = parseFloat(d3.select('#learnMore'+id).node().getBoundingClientRect().height);
 		topTab = 0;		
-		showSplash('blankSplash', true)
 	} else {
 		topTab = viewerParams.windowHeight - parseFloat(d3.select('#learnMore'+id).node().getBoundingClientRect().height);
 		top = viewerParams.windowHeight
-		showSplash('blankSplash', false)
 	} 
 
 	if (!viewerParams.movingTab){
 		viewerParams.movingTab = true;
+		showSplash('blankSplash', show)
 
 		d3.select('#'+id).transition().duration(1000)
 			.style('top',top + 'px')
