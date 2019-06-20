@@ -1500,7 +1500,7 @@ function runLocal(){
 function setIdle(){ 
 	clearInterval(viewerParams.idleTimer);
 	clearInterval(viewerParams.countdownTimer);
-	if (!viewerParams.inStartup) showSplash('countdownSplash',false)
+	showSplash('countdownSplash',false)
 	viewerParams.idleTimer = setInterval(function(){
 		if (!viewerParams.inStartup) {
 			console.log('resetting...')
@@ -1528,8 +1528,8 @@ function setIdle(){
 }
 
 function cancelIdle(){
-	setIdle();
 	viewerParams.inStartup = false
+	setIdle();
 }
 
 d3.select(window)
