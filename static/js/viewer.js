@@ -592,10 +592,8 @@ function addHammer(d) {
 	}
 
 	function onPan(e) {
-		if (viewerParams.nActiveImages < viewerParams.maxActiveImages){
-			if (!d.large) growImage(d);
-			if (e.type != "panend") moveImage(e, d);
-		}
+		if ((viewerParams.nActiveImages < viewerParams.maxActiveImages) & !d.large) growImage(d);
+		if ((viewerParams.nActiveImages <= viewerParams.maxActiveImages) & e.type != "panend") moveImage(e, d);
 	}
 
 	function onPanend(e) {
