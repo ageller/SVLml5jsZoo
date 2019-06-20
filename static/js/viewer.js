@@ -1222,7 +1222,6 @@ function createLearnMoreTabs(){
 
 function showHideTab(id){
 
-
 	//check if already showing
 	show = true
 	var check = parseFloat(d3.select('#learnMore'+id).style('top'))
@@ -1241,10 +1240,17 @@ function showHideTab(id){
 		showSplash('blankSplash', false)
 	} 
 
-	d3.select('#'+id).transition().duration(1000)
-		.style('top',top + 'px')
-	d3.select('#LearnMore'+id).transition().duration(1000)
-		.style('top',topTab + 'px')
+	if (!viewerParams.movingTab){
+		viewerParams.movingTab = true;
+
+		d3.select('#'+id).transition().duration(1000)
+			.style('top',top + 'px')
+		d3.select('#LearnMore'+id).transition().duration(1000)
+			.style('top',topTab + 'px')
+			.on('end',function(){
+				viewerParams.movingTab = false;
+			})
+	}
 }
 
 function createTrainingSplash(){

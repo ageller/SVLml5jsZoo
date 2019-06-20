@@ -68,6 +68,8 @@ function defineViewerParams(){
 		this.idleDuration = 60000//300000 ms = 5 minutes, currently using 60 seconds
 		this.idleCountdown = 10; //seconds
 		this.inStartup = true;
+
+		this.movingTab = false;
 	}
 }
 
