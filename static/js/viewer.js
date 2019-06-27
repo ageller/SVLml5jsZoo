@@ -102,6 +102,7 @@ function populateField(){
 			d.top = d.top0;
 			d.large = false;
 			d.color = viewerParams.unknownColor;
+			if (d.hasOwnProperty('results')) delete d.results;
 			d.dragImageSamples = [];
 			viewerParams.objDataShownIndex.push(i);
 
