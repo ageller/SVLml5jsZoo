@@ -1163,6 +1163,7 @@ function createLearnMoreTabs(){
 		.style('right',0)
 		.style('top',0)
 		.style('padding',0)
+		.style('margin-right','50px')
 		.style('height', viewerParams.windowHeight - 1.1*fsL - 8 + 'px')
 
 	//Machine Learning
