@@ -1377,7 +1377,7 @@ function createTooltip(d){
 	} else {
 		text = "<span style='font-size:"+1.3*fs+"px; line-height:"+1.5*fs+"px'><b>How did I do?</b></span><br/><br/>\
 			If you see an 'X' in the corner of the image, that means I disagree with the Zooniverse volunteers. At the bottom of the screen, you can see the overall percentage of images where I agree with the Zooniverse volunteers, .<br/><br/>\
-			<b>You can help me get smarter</b> by adding images with 'X's into my training set (by sliding them to either side of the table).  When you're done touch the 'Train Model' button again.<br/><br/>\
+			<b>You can help make me smarter</b> by adding images with 'X's into my training set (by sliding them to either side of the table).  When you're done touch the 'Train Model' button again.<br/><br/>\
 			<span style='font-size:"+0.8*fs+"px; line-height:"+0.9*fs+"px'><i>Hint: Now you can see how I classified this galaxy by looking at the 'Computer' text at the bottom of the image.  The border color for the images also shows my classification (blue for spiral, and red for smooth).</i></span> "	
 	}
 
