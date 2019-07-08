@@ -574,7 +574,7 @@ function addHammer(d) {
 	mc.on("pan", onPan);
 	mc.on("panend", onPanend)
 	mc.on("press", onPress)
-	mc.on("pressup", onPressup)
+	//mc.on("pressup", onPressup)
 
 	d['hammer'] = mc;
 
@@ -589,7 +589,6 @@ function addHammer(d) {
 
 	function onPressup(e){
 		if (d.large) shrinkImage(d);
-
 	}
 
 	function onPan(e) {
