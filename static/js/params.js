@@ -7,7 +7,8 @@ function defineViewerParams(){
 	viewerParams = new function() {
 
 		//data 
-		this.objData=null; //<--shared with MLParams
+		this.objData=null;
+		this.objDataImages=[]; //<--shared with MLParams as objData (only sending the images)
 		this.objDataShownIndex=[]; //<--shared with MLParams
 		this.objDataShownClassifications=[]; //<--shared with viewerParams
 
@@ -70,6 +71,10 @@ function defineViewerParams(){
 		this.inStartup = true;
 
 		this.movingTab = false;
+
+		this.userLevel = 0; //0: initial, +1 for every time the user trains the model
+		this.viewerReady = false;
+
 	}
 }
 

@@ -158,16 +158,18 @@ function setMLParams(vars){
 	var keys = Object.keys(vars);
 	//var keys = ['objDataShown', 'spiralImages', 'smoothImages']
 	keys.forEach(function(k, i){
-		MLParams[k] = []
-		vars[k].forEach(function(d, j){
-			MLParams[k].push(d)
-			if (i == keys.length-1 && j == vars[k].length-1){
-				if (MLParams.spiralImages.length >= 2 && MLParams.smoothImages.length >= 2) {
-					//run the ML model
-					runModel();
+		if (k != 'init'){
+			MLParams[k] = []
+			vars[k].forEach(function(d, j){
+				MLParams[k].push(d)
+				if (i == keys.length-1 && j == vars[k].length-1){
+					if (MLParams.spiralImages.length >= 2 && MLParams.smoothImages.length >= 2) {
+						//run the ML model
+						runModel();
+					}
 				}
-			}
-		})
+			})
+		}
 	});
 	console.log('have params for ML', MLParams)
 
@@ -204,6 +206,8 @@ function connectSocket(){
 		// section of the page.
 		//updates from viewer
 		socketParams.socket.on('update_MLParams', function(msg) {
+			console.log('received', msg)
+			if (msg.hasOwnProperty('init')) defineMLParams();
 			setMLParams(msg); //this also runs the model
 		});
 

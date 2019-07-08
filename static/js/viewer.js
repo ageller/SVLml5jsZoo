@@ -66,6 +66,8 @@ function formatBucketText(){
 
 //grid for small images
 function populateField(){
+	viewerParams.viewerReady = false;
+
 	d3.selectAll('#fieldDiv').remove();
 
 	var w = viewerParams.windowWidth; 
@@ -92,7 +94,9 @@ function populateField(){
 	viewerParams.imageGridWidth = divWidth;
 
 	//check which ones will be shown
+	viewerParams.objDataImages = [];
 	viewerParams.objData.forEach(function(d,i){
+		viewerParams.objDataImages.push({"image":d.image}); //needed because I can't send hammer instances over socketio
 		var left = Math.floor(i/viewerParams.nImageHeight)*viewerParams.imageSize;
 		var top = (i % viewerParams.nImageHeight)*viewerParams.imageSize;
 		if (left < divWidth){
@@ -107,6 +111,7 @@ function populateField(){
 			viewerParams.objDataShownIndex.push(i);
 
 		}
+		if (i == viewerParams.objData.length -1) viewerParams.viewerReady = true;
 	})
 
 	viewerParams.nSpiral = 0.;
@@ -494,6 +499,7 @@ function growImage(d){
 		.style('box-shadow', s1 + 'px ' + s1 + 'px ' + s2 + 'px ' + s2 + 'px rgb(20,20,20)')
 		.on('end', function(){
 			populateStats(d);
+			if (viewerParams.userLevel < 2) createTooltip(d);
 		})
 
 	d3.select('#'+getImageID(d)).select('img').transition().duration(200)
@@ -504,6 +510,7 @@ function growImage(d){
 function shrinkImage(d){
 	d.large = false;
 	viewerParams.nActiveImages = Math.max(viewerParams.nActiveImages-1, 0);
+	destroyTooltip(d);
 
 	//cancel any transitions
 	d3.selectAll('#'+getImageID(d)).interrupt(); 
@@ -574,7 +581,7 @@ function addHammer(d) {
 	mc.on("pan", onPan);
 	mc.on("panend", onPanend)
 	mc.on("press", onPress)
-	//mc.on("pressup", onPressup)
+	mc.on("pressup", onPressup)
 
 	d['hammer'] = mc;
 
@@ -615,6 +622,7 @@ function addHammer(d) {
 
 }
 function moveImage(e, d){
+	moveTooltip(d);
 	var position = [e.center.x, Math.min(Math.max(e.center.y, viewerParams.imageGrowSize - viewerParams.imageSize), viewerParams.windowHeight - viewerParams.imageSize)]; //I don't understand the first bit within the max, but it works...
 
 	//sometimes there is a mistake somewhere?
@@ -816,7 +824,7 @@ function showMLResults(){
 		} else {
 			viewerParams.nSmooth += 1.;
 		}
-		console.log(d.results)
+		//console.log(d.results)
 		if (d.results && d.results[0]) {
 			
 			d.color = viewerParams.unknownColor;
@@ -838,7 +846,7 @@ function showMLResults(){
 					d.agree = false;
 				}
 			}
-			console.log(d.agree)
+			//console.log(d.agree)
 			d3.select('#'+getImageID(d)).transition().duration(1000)
 				.style('border-color',d.color)
 				.on('end', function(){
@@ -1352,6 +1360,67 @@ function showSplash(id, show){
 	}
 }
 
+////////////////////
+// for the tooltips
+///////////////////
+function createTooltip(d){
+	destroyTooltip(d);
+
+	var fs = 18;
+
+	var text = "";
+	if (viewerParams.userLevel == 0){
+		text = "<span style='font-size:"+1.3*fs+"px; line-height:"+1.5*fs+"px'><b>Is this galaxy spiral or smooth?</b></span><br/><br/>\
+			If you think it's spiral, slide it off the table to the left.  If you think it's smooth, slide it off the table to the right.<br/><br/>\
+			These galaxies will become my 'training set', to help me learn.  Once you have shared at least two of each type with me, click the 'Train Model' button at the bottom.<br/><br/>\
+			<span style='font-size:"+0.8*fs+"px; line-height:"+0.9*fs+"px'><i>Hint: You can see how the Zooniverse volunteers classified this galaxy by looking at the 'Zooniverse' text at the bottom of the image.  The numbers are also shown graphically with the colored bars on either side of the image (blue for spiral, and red for smooth).</i></span> "
+	} else {
+		text = "<span style='font-size:"+1.3*fs+"px; line-height:"+1.5*fs+"px'><b>How did I do?</b></span><br/><br/>\
+			If you see an 'X' in the corner of the image, that means I disagree with the Zooniverse volunteers. At the bottom of the screen, you can see the overall percentage of images where I agree with the Zooniverse volunteers, .<br/><br/>\
+			<b>You can help me get smarter</b> by adding images with 'X's into my training set (by sliding them to either side of the table).  When you're done touch the 'Train Model' button again.<br/><br/>\
+			<span style='font-size:"+0.8*fs+"px; line-height:"+0.9*fs+"px'><i>Hint: Now you can see how I classified this galaxy by looking at the 'Computer' text at the bottom of the image.  The border color for the images also shows my classification (blue for spiral, and red for smooth).</i></span> "	
+	}
+
+
+	var top = parseFloat(d3.select('#'+getImageID(d)).style('top')) + (viewerParams.imageSize - viewerParams.imageGrowSize);
+	var left = parseFloat(d3.select('#'+getImageID(d)).style('left')) + (viewerParams.imageSize - viewerParams.imageGrowSize);
+
+	var tt = d3.select('body').append('div')
+		.attr('id','tooltip_' + getImageID(d))
+		.attr('class','tooltip')
+		.style('font-size',fs + 'px')
+		.style('line-height',1.05*fs + 'px')
+		//.style('height',viewerParams.imageGrowSize +'px')
+		.style('width',viewerParams.imageGrowSize +'px')
+		.style('top',top + 'px')
+		.style('left',left + 'px')
+		.html(text)
+		.transition().duration(500)
+			.tween("position", function() {
+				var div = d3.select(this);
+				var startLeft = parseInt(div.style('left'));  
+				return function(t) {   
+					var finalLeft = d.left + viewerParams.imageSize - 4;
+					var xInterp = d3.interpolateRound(startLeft, finalLeft);
+					div.style("left", xInterp(t) + "px");
+				};
+			});
+
+	d.tt = tt;
+
+}
+function destroyTooltip(d){
+	d3.selectAll('#tooltip_' + getImageID(d)).remove()	
+
+}
+function moveTooltip(d){
+	var top = parseFloat(d3.select('#'+getImageID(d)).style('top')) + (viewerParams.imageSize - viewerParams.imageGrowSize);
+	var left = parseFloat(d3.select('#'+getImageID(d)).style('left')) + (viewerParams.imageSize - viewerParams.imageGrowSize);
+	d3.select('#tooltip_' + getImageID(d))
+		.style('top',top + 'px')
+		.style('left',left + viewerParams.imageGrowSize - 4 + 'px')
+
+}
 /**
  * Randomly shuffle an array
  * https://stackoverflow.com/a/2450976/1293256
@@ -1380,25 +1449,40 @@ var shuffle = function(array){
 };
 
 function reset(){
+	console.log('resetting')
+	viewerParams.viewerReady = false;
 	viewerParams.spiralImages=[];
 	viewerParams.smoothImages=[];
 	viewerParams.objDataShownIndex=[];
+	viewerParams.userLevel = 0;
+	d3.selectAll('.tooltip').remove();
 	d3.select('#spiralN').text('0')
 	d3.select('#smoothN').text('0')
 	d3.select('#spiralP').html('&mdash;')
 	d3.select('#smoothP').html('&mdash;')
 
 	populateField();
+
+	var hold = setInterval(function(){
+		if (viewerParams.viewerReady){
+			clearInterval(hold);
+			var ml_input = {'init':null, 'objData':viewerParams.objDataImages};
+			console.log("for ml", ml_input)
+			if (viewerParams.usingSocket){
+				socketParams.socket.emit('ml_input',ml_input);
+			} else {
+				setMLParams(ml_input);
+			}
+		}
+	}, 100);
+
+
 }
 
 function init(){
-	//first send the object data to ML
-	var ml_input = {'objData':viewerParams.objData};
-	if (viewerParams.usingSocket){
-		socketParams.socket.emit('ml_input',ml_input);
-	} else {
-		setMLParams(ml_input);
-	}
+	console.log('initializing')
+
+	reset(); //this will also populate the field and send the data to the ml engine
 
 	//splash screens
 	createInstructionsSplash();
@@ -1409,9 +1493,10 @@ function init(){
 	setIdle();
 	setColorMaps();
 	formatBucketText();
-	populateField();
 	createButtons();
 	createCounters();
+
+
 }
 
 
@@ -1452,14 +1537,15 @@ function sendToML(){
 
 	//only send if there are enough images in the buckets
 	if (viewerParams.spiralImages.length >= 2 && viewerParams.smoothImages.length >= 2){
-		showSplash('trainingSplash', true)
+		showSplash('trainingSplash', true);
+		viewerParams.userLevel += 1;
 		var ml_input = {
 					'objDataShownIndex':viewerParams.objDataShownIndex,
 					'spiralImages':viewerParams.spiralImages,
 					'smoothImages':viewerParams.smoothImages
 					};
 		if (viewerParams.usingSocket){
-			console.log('sending to ML', ml_input)
+			console.log('sending to ML', ml_input);
 			socketParams.socket.emit('ml_input',ml_input);
 		} else {
 			setMLParams(ml_input);
@@ -1468,7 +1554,7 @@ function sendToML(){
 		//blink red to show the problem
 		if (viewerParams.spiralImages.length < 2){
 			var x1 = d3.select('#spiralCounter');
-			var color = x1.style('background-color')
+			var color = x1.style('background-color');
 			x1.transition().duration(500)
 				.style('background-color','red')
 				.on('end',function(){
@@ -1477,7 +1563,7 @@ function sendToML(){
 		}
 		if (viewerParams.smoothImages.length < 2){
 			var x2 = d3.select('#smoothCounter');
-			var color = x2.style('background-color')
+			var color = x2.style('background-color');
 			x2.transition().duration(500)
 				.style('background-color','red')
 				.on('end',function(){
