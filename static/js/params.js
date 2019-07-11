@@ -73,6 +73,7 @@ function defineViewerParams(){
 		this.movingTab = false;
 
 		this.userLevel = 0; //0: initial, +1 for every time the user trains the model
+		this.shownHelp = false;
 		this.viewerReady = false;
 
 	}

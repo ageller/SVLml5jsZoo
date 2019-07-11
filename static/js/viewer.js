@@ -499,7 +499,7 @@ function growImage(d){
 		.style('box-shadow', s1 + 'px ' + s1 + 'px ' + s2 + 'px ' + s2 + 'px rgb(20,20,20)')
 		.on('end', function(){
 			populateStats(d);
-			if (viewerParams.userLevel < 2) createTooltip(d);
+			if (!viewerParams.shownHelp) createTooltip(d);
 		})
 
 	d3.select('#'+getImageID(d)).select('img').transition().duration(200)
@@ -656,6 +656,7 @@ function checkBucket(xpos, d){
 			growBucket(bucket);
 			replaceImageInField(d);		
 		}
+		viewerParams.shownHelp = true;
 		return true;
 	} else {
 		return false
@@ -815,6 +816,7 @@ function showMLResults(){
 	viewerParams.nSmoothAgree = 0.;
 	viewerParams.nSpiral = 0.;
 	viewerParams.nSmooth = 0.;
+	viewerParams.shownHelp = false;
 	viewerParams.objDataShownIndex.forEach(function(i){
 		var d = viewerParams.objData[i]
 		var spiral = 10*d['t04_spiral_a08_spiral_debiased'];
@@ -1452,6 +1454,7 @@ var shuffle = function(array){
 function reset(){
 	console.log('resetting')
 	viewerParams.viewerReady = false;
+	viewerParams.shownHelp = false;
 	viewerParams.spiralImages=[];
 	viewerParams.smoothImages=[];
 	viewerParams.objDataShownIndex=[];
