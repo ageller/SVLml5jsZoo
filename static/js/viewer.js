@@ -1152,7 +1152,7 @@ function createLearnMoreTabs(){
 	var hZim = parseFloat(d3.select('#zooImage').node().getBoundingClientRect().height);
 	zoo.append('div')
 		.style('top',hZim + 'px')
-		.style('width',viewerParams.windowWidth/2 + 'px') 
+		.style('width',0.45*viewerParams.windowWidth + 'px') 
 		.style('line-height',1.1*fs +'px')
 		.style('font-size',fs +'px')
 		.style('padding','10px')
@@ -1165,7 +1165,7 @@ function createLearnMoreTabs(){
 		.style('right',0)
 		.style('top',0)
 		.style('padding',0)
-		.style('margin-right','50px')
+		//.style('margin-right','50px')
 		.style('height', viewerParams.windowHeight - 1.1*fsL - 8 + 'px')
 
 	//Machine Learning
@@ -1220,7 +1220,7 @@ function createLearnMoreTabs(){
 		.style('left',0)
 		.style('top',0)
 		.style('line-height',1.1*fs +'px')
-		.style('width',viewerParams.windowWidth/2 + 'px') 
+		.style('width',0.45*viewerParams.windowWidth + 'px') 
 		.style('font-size',fs +'px')
 		.style('padding','10px')
 		.html('Machine learning is the science (and art) of programming computers so they can learn from data.  Machine Learning is part of the larger field of artificial intelligence (AI) that focuses on teaching computers how to learn without the need to be programmed for specific tasks. <br/> <br/> Our application here uses a machine learning model developed by Google, called TensorFlow.  And more specifically, we are using a "MobileNet" version, which has been developed to work well with images. <br/><br/> A machine learning model requires a "training set".  In this application our training set is a group of images of either spiral or smooth galaxies -- determined by you.  When you "train" the model, the computer uses different features in these training images to "learn" what defines a spiral or smooth galaxy. Afterwards the computer can compare the same features of a new image to classify it as either spiral or smooth on its own.<br/><br/> You will notice that sometimes the computer gets the classification wrong.  Often the computer\'s ability to classify images correctly can be improved by increasing the training set, and including a more diverse set of images in the training set.')
