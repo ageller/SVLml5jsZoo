@@ -1152,10 +1152,11 @@ function createLearnMoreTabs(){
 	var hZim = parseFloat(d3.select('#zooImage').node().getBoundingClientRect().height);
 	zoo.append('div')
 		.style('top',hZim + 'px')
-		.style('width',0.45*viewerParams.windowWidth + 'px') 
+		.style('width',0.5*viewerParams.windowWidth + 'px') 
 		.style('line-height',1.1*fs +'px')
 		.style('font-size',fs +'px')
 		.style('padding','10px')
+		.style('text-align','justify')
 		.html("Zooniverse is the world’s largest people-powered research platform, developed jointly at the Adler Planetarium and Oxford University.  Participate in tons of projects just like this one in topics ranging from astronomy to zoology. <br/><br/> Scientists need your help to process all the data they have, whether it’s classifying the shapes of galaxies or identifying animal species. By answering a few questions, you’ll make a big difference in the scientific community! <br/><br/> If you like this experience, check out a new way to classify galaxies on the touch table upstairs in the Solar System gallery: <img style='vertical-align:middle; display:inline-block; height:"+3*fs+"' src='static/doc/uScientist-logo-color.png'>")
 
 	zoo.append('img')
@@ -1220,8 +1221,9 @@ function createLearnMoreTabs(){
 		.style('left',0)
 		.style('top',0)
 		.style('line-height',1.1*fs +'px')
-		.style('width',0.45*viewerParams.windowWidth + 'px') 
+		.style('width',0.48*viewerParams.windowWidth + 'px') 
 		.style('font-size',fs +'px')
+		.style('text-align','justify')
 		.style('padding','10px')
 		.html('Machine learning is the science (and art) of programming computers so they can learn from data.  Machine Learning is part of the larger field of artificial intelligence (AI) that focuses on teaching computers how to learn without the need to be programmed for specific tasks. <br/> <br/> Our application here uses a machine learning model developed by Google, called TensorFlow.  And more specifically, we are using a "MobileNet" version, which has been developed to work well with images. <br/><br/> A machine learning model requires a "training set".  In this application our training set is a group of images of either spiral or smooth galaxies -- determined by you.  When you "train" the model, the computer uses different features in these training images to "learn" what defines a spiral or smooth galaxy. Afterwards the computer can compare the same features of a new image to classify it as either spiral or smooth on its own.<br/><br/> You will notice that sometimes the computer gets the classification wrong.  Often the computer\'s ability to classify images correctly can be improved by increasing the training set, and including a more diverse set of images in the training set.')
 
