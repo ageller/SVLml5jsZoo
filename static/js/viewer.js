@@ -440,12 +440,12 @@ function resizeCounters(){
 	var start = 'end';
 	if (viewerParams.userLevel == 0){
 		w1All = w1/2.
-		w2All = w2/2.
+		w2All = w1/2.
 		w1Offset = -w1/2.;
 		hidden = true;
 		start = 'start'
 	}
-
+	console.log(w1All, w2All)
 	d3.select('#spiralCounter').transition().duration(1000)
 		.style('width',w1All + 'px') 
 		.style('left', minLeft - w1Offset + 'px')
@@ -458,7 +458,7 @@ function resizeCounters(){
 		.style('left',  w1/2 + w1Offset + 'px')
 	d3.select('#spiralNtext').transition().duration(1000)
 		.style('width', w1/2 + 'px')
-		.style('left', w1/2 + w1Offset - 6 + 'px')//so that there's room for the text given curved border
+		.style('left', w1/2 + w1Offset + 4 + 'px')
 	d3.select('#spiralP').transition().duration(1000)
 		.style('width', w1/2 + 'px')
 		.style('left', '0px')
@@ -478,7 +478,7 @@ function resizeCounters(){
 		.style('left', '0px')
 	d3.select('#smoothNtext').transition().duration(1000)
 		.style('width', w2/2 + 'px')
-		.style('left', '0px')
+		.style('left', -4 + 'px')
 	d3.select('#smoothP').transition().duration(1000)
 		.style('width', w2/2 + 'px')
 		.style('left',  w2/2 + 'px')
@@ -958,6 +958,7 @@ function createInstructionsSplash(){
 		.style('width', stepsWidth + 'px')
 	instr1.append('div')
 		.attr('id','instructionsStepN')
+		.style('color','#c1ac9a') //same as tooltips background
 		.style('position','absolute')
 		.style('left',0)
 		.style('top',0)
@@ -968,6 +969,7 @@ function createInstructionsSplash(){
 		.html('&#10102;')
 	instr1.append('div')
 		.attr('id','instructionsStep1Text')
+		.style('color','#c1ac9a') //same as tooltips background
 		.style('position','absolute')
 		.style('left',1.1*fsN+'px')
 		.style('top',0)
@@ -987,6 +989,7 @@ function createInstructionsSplash(){
 		.style('width',stepsWidth + 'px')
 	instr2.append('div')
 		.attr('id','instructionsStep2N')
+		.style('color','#c1ac9a') //same as tooltips background
 		.style('position','absolute')
 		.style('left',0)
 		.style('top',0)
@@ -997,6 +1000,7 @@ function createInstructionsSplash(){
 		.html('&#10103;')
 	instr2.append('div')
 		.attr('id','instructionsStep2Text')
+		.style('color','#c1ac9a') //same as tooltips background
 		.style('position','absolute')
 		.style('left',1.1*fsN+'px')
 		.style('top',0)
@@ -1016,6 +1020,7 @@ function createInstructionsSplash(){
 		.style('width',stepsWidth + 'px')
 	instr3.append('div')
 		.attr('id','instructionsStep3N')
+		.style('color','#c1ac9a') //same as tooltips background
 		.style('position','absolute')
 		.style('left',0)
 		.style('top',0)
@@ -1026,6 +1031,7 @@ function createInstructionsSplash(){
 		.html('&#10104;')
 	instr3.append('div')
 		.attr('id','instructionsStep3Text')
+		.style('color','#c1ac9a') //same as tooltips background
 		.style('position','absolute')
 		.style('left',1.1*fsN+'px')
 		.style('top',0)
@@ -1045,6 +1051,7 @@ function createInstructionsSplash(){
 		.style('width',stepsWidth + 'px')
 	instr4.append('div')
 		.attr('id','instructionsStep4N')
+		.style('color','#c1ac9a') //same as tooltips background
 		.style('position','absolute')
 		.style('left',0)
 		.style('top',0)
@@ -1055,6 +1062,7 @@ function createInstructionsSplash(){
 		.html('&#10105;')
 	instr4.append('div')
 		.attr('id','instructionsStep4Text')
+		.style('color','#c1ac9a') //same as tooltips background
 		.style('position','absolute')
 		.style('left',1.1*fsN+'px')
 		.style('top',0)
@@ -1080,7 +1088,6 @@ function createInstructionsSplash(){
 		.style('height', 0.8*fsN + 'px')	
 		.style('line-height',0.8*fsN +'px')
 		.style('font-size',0.8*fsN +'px')
-		.style('color','#c1ac9a') //same as tooltips background
 		.text("Touch anywhere to begin.")
 
 	var imgWidth = viewerParams.windowWidth - stepsWidth - stepsLeft - 20;
@@ -1506,7 +1513,7 @@ function reset(){
 }
 
 function init(){
-	console.log('initializing')
+	console.log('initializing', window.innerWidth, window.innerHeight)
 
 
 	//splash screens
