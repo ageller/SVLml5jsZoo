@@ -58,6 +58,11 @@ function defineViewerParams(){
 		this.nSmoothAgree = 0.;
 		this.sSpiralAgree = 0.;
 
+		//size of the counters (will change after training)
+		this.spiralCounterWidth = 0;
+		this.spiralCounterLeft = 0;
+		this.smoothCounterWidth = 0;
+
 		//limit the number of images that can be touched
 		this.nActiveImages = 0;
 		this.maxActiveImages = 4;

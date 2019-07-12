@@ -352,6 +352,7 @@ function createCounters(){
 		.style('line-height', viewerParams.buttonHeight*0.75 + 'px')
 		.style('text-align','center')
 		.html('&mdash;')
+		.classed('hidden', true)
 	spiralCounter.append('div')
 		.attr('id','spiralPtext')
 		.style('position','absolute')
@@ -360,6 +361,7 @@ function createCounters(){
 		.style('line-height', viewerParams.buttonHeight*0.25 + 'px')
 		.style('text-align','center')
 		.text('spiral agreement')
+		.classed('hidden', true)
 
 
 	var smoothCounter = d3.select('body').append('div')
@@ -398,6 +400,7 @@ function createCounters(){
 		.style('line-height', viewerParams.buttonHeight*0.75 + 'px')
 		.style('text-align','center')
 		.html('&mdash;')
+		.classed('hidden', true)
 	smoothCounter.append('div')
 		.attr('id','smoothPtext')
 		.style('position','absolute')
@@ -406,7 +409,13 @@ function createCounters(){
 		.style('line-height', viewerParams.buttonHeight*0.25 + 'px')
 		.style('text-align','center')
 		.text('smooth agreement')
+		.classed('hidden', true)
 
+	//sizes and positions for the counters
+	resizeCounters();
+
+}
+function resizeCounters(){
 	//sizes and positions for the counters
 	leftReset = parseFloat(d3.select('#resetButton').style('left'));
 	leftTraining = parseFloat(d3.select('#trainingButton').style('left'));
@@ -423,53 +432,61 @@ function createCounters(){
 	})
 
 	var w1 = leftReset - minLeft - 12; //2x4 for border, 2x2 for padding
-	d3.select('#spiralCounter')
-		.style('width',w1 + 'px') 
-		.style('left', minLeft + 'px')
-	d3.select('#spiralN')
+	var w2 = maxLeft - leftTraining - widthTraining -12; //2x4 for border, 2x2 for padding
+	var w1All = w1;
+	var w2All = w2;
+	var w1Offset = 0.
+	var hidden = false;
+	var start = 'end';
+	if (viewerParams.userLevel == 0){
+		w1All = w1/2.
+		w2All = w2/2.
+		w1Offset = -w1/2.;
+		hidden = true;
+		start = 'start'
+	}
+
+	d3.select('#spiralCounter').transition().duration(1000)
+		.style('width',w1All + 'px') 
+		.style('left', minLeft - w1Offset + 'px')
+		.on(start, function(){
+			d3.select('#spiralPtext').classed('hidden', hidden)
+			d3.select('#spiralP').classed('hidden', hidden)
+		})
+	d3.select('#spiralN').transition().duration(1000)
 		.style('width', w1/2 + 'px')
-		.style('left',  w1/2 + 'px')
-	d3.select('#spiralNtext')
+		.style('left',  w1/2 + w1Offset + 'px')
+	d3.select('#spiralNtext').transition().duration(1000)
 		.style('width', w1/2 + 'px')
-		.style('left', w1/2 - 6 + 'px')//so that there's room for the text given curved border
-	d3.select('#spiralP')
+		.style('left', w1/2 + w1Offset - 6 + 'px')//so that there's room for the text given curved border
+	d3.select('#spiralP').transition().duration(1000)
 		.style('width', w1/2 + 'px')
 		.style('left', '0px')
-	d3.select('#spiralPtext')
+	d3.select('#spiralPtext').transition().duration(1000)
 		.style('width', w1/2 + 'px')
 		.style('left', '0px')
 
-	var w2 = maxLeft - leftTraining - widthTraining -12; //2x4 for border, 2x2 for padding
-	d3.select('#smoothCounter')
-		.style('width',w2 + 'px')
+	d3.select('#smoothCounter').transition().duration(1000)
+		.style('width',w2All + 'px')
 		.style('left', leftTraining + widthTraining + 'px')
-	d3.select('#smoothN')
+		.on(start, function(){
+			d3.select('#smoothPtext').classed('hidden', hidden)
+			d3.select('#smoothP').classed('hidden', hidden)
+		})
+	d3.select('#smoothN').transition().duration(1000)
 		.style('width', w2/2 + 'px')
 		.style('left', '0px')
-	d3.select('#smoothNtext')
+	d3.select('#smoothNtext').transition().duration(1000)
 		.style('width', w2/2 + 'px')
 		.style('left', '0px')
-	d3.select('#smoothP')
+	d3.select('#smoothP').transition().duration(1000)
 		.style('width', w2/2 + 'px')
 		.style('left',  w2/2 + 'px')
-	d3.select('#smoothPtext')
+	d3.select('#smoothPtext').transition().duration(1000)
 		.style('width', w2/2 + 'px')
 		.style('left',  w2/2 - 10 + 'px')//so that there's room for the text given curved border
 
-	// var w1 = parseFloat(d3.select('#spiralCounter').style('left')) - minLeft -6;//4 for border, 2 for padding;
-	// d3.select('#spiralPercent')
-	// 	.style('width',w1 + 'px')
-	// 	.style('left',minLeft -2 + 'px')//4 for border, 2x2 for padding
-	// 	.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
-	// 	.style('border-radius', h/2 + 'px 0px 0px ' + h/2 + 'px')
 
-	// var x = d3.select('#smoothCounter')
-	// //var w2 = maxLeft - (parseFloat(x.style('left')) + parseFloat(x.style('width')) ) -12 +2;//2x4 for border, 2x2 for padding, and overlap borders;
-	// d3.select('#smoothPercent')
-	// 	.style('width',w1 + 'px')
-	// 	.style('left',maxLeft - w1 + 'px')//2 for padding
-	// 	.style('top', viewerParams.windowHeight - h - 2.*viewerParams.buttonMargin + 'px')
-	// 	.style('border-radius', '0px ' + h/2 + 'px ' +h/2 + 'px 0px')
 
 
 }
@@ -864,6 +881,7 @@ function showMLResults(){
 		if (i == viewerParams.objDataShownIndex.length-1){
 			//show the percent agreement (will have some way to display on screen later)
 			//NOTE: I think this will also include the training set (but is that a problem?)
+			resizeCounters();
 			d3.select('#spiralP').html(Math.round(viewerParams.nSpiralAgree/viewerParams.nSpiral*100.)+'%')
 			d3.select('#smoothP').html(Math.round(viewerParams.nSmoothAgree/viewerParams.nSmooth*100.)+'%')
 			console.log('Spiral agreement : ', viewerParams.nSpiral, viewerParams.nSpiralAgree, viewerParams.nSpiralAgree/viewerParams.nSpiral)
@@ -1059,9 +1077,10 @@ function createInstructionsSplash(){
 		.style('left',stepsLeft + 1.1*fsN + 'px')
 		.style('width',stepsWidth + 'px')
 		.style('text-align', 'left')
-		.style('height', fsN + 'px')	
-		.style('line-height',fsN +'px')
-		.style('font-size',fsN +'px')
+		.style('height', 0.8*fsN + 'px')	
+		.style('line-height',0.8*fsN +'px')
+		.style('font-size',0.8*fsN +'px')
+		.style('color','#c1ac9a') //same as tooltips background
 		.text("Touch anywhere to begin.")
 
 	var imgWidth = viewerParams.windowWidth - stepsWidth - stepsLeft - 20;
@@ -1468,6 +1487,7 @@ function reset(){
 	d3.select('#smoothP').html('&mdash;')
 
 	populateField();
+	resizeCounters();
 
 	var hold = setInterval(function(){
 		if (viewerParams.viewerReady){
@@ -1488,7 +1508,6 @@ function reset(){
 function init(){
 	console.log('initializing')
 
-	reset(); //this will also populate the field and send the data to the ml engine
 
 	//splash screens
 	createInstructionsSplash();
@@ -1502,6 +1521,7 @@ function init(){
 	createButtons();
 	createCounters();
 
+	reset(); //this will also populate the field and send the data to the ml engine
 
 }
 
