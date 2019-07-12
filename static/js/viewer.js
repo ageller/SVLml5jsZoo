@@ -1420,6 +1420,7 @@ function createTooltip(d){
 		.attr('id','tooltip_' + getImageID(d))
 		.attr('class','tooltip')
 		.style('font-size',fs + 'px')
+		.style('text-align','justify')
 		.style('line-height',1.05*fs + 'px')
 		//.style('height',viewerParams.imageGrowSize +'px')
 		.style('width',viewerParams.imageGrowSize +'px')
