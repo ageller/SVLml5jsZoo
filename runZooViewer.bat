@@ -1,7 +1,7 @@
 @Echo off
 
 Rem This is our usual program, and will be in the background in case this crashes
-START "Earth v Mars" "C:\Users\MTUser\Desktop\Earth vs Mars\CollectionViewer-1.2\EvM.exe"
+Rem START "Earth v Mars" "C:\Users\MTUser\Desktop\Earth vs Mars\CollectionViewer-1.2\EvM.exe"
 
 echo Monitoring Zooniverse app.
 echo Press Ctrl-C if you don't want to restart automatically.
