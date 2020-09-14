@@ -1,5 +1,5 @@
 # SVLml5jsZoo
-[screengrab](static/doc/ScreenShot1.png)
+![screengrab](static/doc/ScreenShot1.png)
 
 A test exhibit for the Adler Planetarium's SVL to teach Machine Learning using Galaxy Zoo data
 
